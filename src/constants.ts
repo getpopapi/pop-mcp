@@ -7,14 +7,11 @@ export const API_ENDPOINTS = {
   createXml: "/create-xml",
   createUbl: "/create-ubl",
   createPdf: "/create-pdf",
-  documentNotifications: "/document-notifications",
+  documentNotifications: "/sdi-via-pop/document-notifications",
   peppolDocumentGet: "/peppol/document-get",
   sdiDocumentVerify: "/sdi-via-pop/document-verify",
-  sdiDocumentSend: "/sdi-via-pop/document-send",
   sdiDocumentPreserve: "/sdi-via-pop/document-preserve",
   sdiDocumentGet: "/sdi-via-pop/document-get",
-  sdiVerifyFiscalId: "/sdi-via-pop/verify-fiscal-id",
-  sdiVerifyCompany: "/sdi-via-pop/verify-company",
 } as const;
 
 export const CHARACTER_LIMIT = 25000;
