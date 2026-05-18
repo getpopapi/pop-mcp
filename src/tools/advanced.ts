@@ -4,7 +4,7 @@ import { apiPost, handleApiError, getApiKey } from "../client.js";
 import { API_ENDPOINTS } from "../constants.js";
 
 const VerifySdiDocumentSchema = z.object({
-  uuid: z.string().uuid().describe("UUID of the SdI document draft to verify"),
+  xml_base64: z.string().describe("The SdI XML document encoded as a Base64 string"),
 }).strict();
 
 const PreserveDocumentSchema = z.object({
@@ -38,7 +38,7 @@ export function registerAdvancedTools(server: McpServer): void {
       title: "Verify SdI Document",
       description: `Validate an SdI (FatturaPA) XML document for compliance before submission.
 
-Use this tool to check if a previously created SdI document draft passes XML syntax validation and Italian e-invoicing compliance checks — without actually submitting it. This helps catch errors before they result in SdI rejections.
+Use this tool to check if an SdI XML document passes XML syntax validation and Italian e-invoicing compliance checks — without actually submitting it. This helps catch errors before they result in SdI rejections.
 
 Common validation checks:
   - XML schema conformance
@@ -50,7 +50,7 @@ Common validation checks:
 Requires: Growth+ plan with active SdI via POP integration and registered business.
 
 Args:
-  - uuid: UUID of the draft SdI document to verify`,
+  - xml_base64: The SdI XML document encoded as a Base64 string`,
       inputSchema: VerifySdiDocumentSchema,
       annotations: {
         readOnlyHint: true,
@@ -65,7 +65,8 @@ Args:
           API_ENDPOINTS.sdiDocumentVerify,
           {
             license_key: getApiKey(),
-            integration: { uuid: params.uuid },
+            skip_business_check: true,
+            integration: { xml: params.xml_base64 },
           }
         );
 

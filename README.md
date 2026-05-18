@@ -2,6 +2,8 @@
 
 MCP (Model Context Protocol) server for the **POP Cloud API** — enabling LLMs to generate, submit, and manage Italian e-invoices (FatturaPA/SdI), Peppol invoices, and PDF invoices directly from AI assistants.
 
+> **npm:** `@getpopapi/pop-mcp-server`
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)](https://nodejs.org/)
 
@@ -19,7 +21,7 @@ MCP (Model Context Protocol) server for the **POP Cloud API** — enabling LLMs 
 
 ---
 
-## Tools Available (11 total)
+## Tools Available (8 total)
 
 ### Invoice Creation
 | Tool | Description |
@@ -35,17 +37,10 @@ MCP (Model Context Protocol) server for the **POP Cloud API** — enabling LLMs 
 | `pop_get_peppol_document` | Retrieve a Peppol document from the network |
 | `pop_get_sdi_document` | Retrieve an archived SdI document by UUID |
 
-### Validation
+### Validation & Advanced SdI
 | Tool | Description |
 |------|-------------|
-| `pop_verify_fiscal_id` | Validate Italian codice fiscale |
-| `pop_verify_company` | Validate company VAT number |
 | `pop_verify_sdi_document` | Pre-submission XML compliance check |
-
-### Advanced SdI Workflow
-| Tool | Description |
-|------|-------------|
-| `pop_send_sdi_document` | Send a pre-created draft to SdI (two-step workflow) |
 | `pop_preserve_document` | Archive document in certified long-term storage |
 
 ---
@@ -60,19 +55,19 @@ MCP (Model Context Protocol) server for the **POP Cloud API** — enabling LLMs 
 
 ## Installation
 
+### From npm (recommended)
+
+```bash
+npm install -g @getpopapi/pop-mcp-server
+```
+
 ### From Source
 
 ```bash
-git clone https://github.com/babinimazzari/pop-mcp-server
+git clone https://github.com/getpopapi/pop-mcp-server
 cd pop-mcp-server
 npm install
 npm run build
-```
-
-### From npm (when published)
-
-```bash
-npm install -g pop-mcp-server
 ```
 
 ---
@@ -96,6 +91,23 @@ export POP_ENVIRONMENT=staging
 ## Claude Desktop Setup
 
 Add to your `claude_desktop_config.json`:
+
+**If installed from npm:**
+
+```json
+{
+  "mcpServers": {
+    "pop": {
+      "command": "pop-mcp-server",
+      "env": {
+        "POP_API_KEY": "your_license_key_here"
+      }
+    }
+  }
+}
+```
+
+**If running from source:**
 
 ```json
 {
@@ -138,9 +150,9 @@ Ask your AI assistant:
 
 > "Create a PDF invoice for order #123 and email it to customer@example.com."
 
-### Validate a Fiscal Code
+### Verify SdI Document Before Sending
 
-> "Is RSSMRA80A01H501U a valid Italian fiscal code?"
+> "Verify SdI document with UUID abc123-... for compliance before submission."
 
 ---
 
@@ -153,9 +165,8 @@ Ask your AI assistant:
 | SdI submission | ❌ | ✅ | ✅ |
 | Peppol submission | ❌ | ✅ | ✅ |
 | PDF email delivery | ❌ | ✅ | ✅ |
-| Document verification | ❌ | ✅ Growth+ | ✅ |
+| SdI document verification | ❌ | ✅ Growth+ | ✅ |
 | Document preservation | ❌ | ✅ Growth+ | ✅ |
-| Fatture in Cloud sync | ❌ | ❌ | ✅ |
 
 ---
 
@@ -260,7 +271,7 @@ data
 
 ## Related Projects
 
-- [n8n-nodes-pop](https://github.com/babinimazzari/n8n-nodes-pop) — n8n community nodes for POP API
+- [n8n-nodes-pop](https://github.com/getpopapi/n8n-nodes-pop) — n8n community nodes for POP API
 - [POP Cloud API](https://popapi.io) — Official website
 - [API Documentation](https://documenter.getpostman.com/view/41622997/2sAYkLmGT8) — Postman docs
 
@@ -268,4 +279,4 @@ data
 
 ## License
 
-MIT © [babinimazzari](https://github.com/babinimazzari)
+MIT © [getpopapi](https://github.com/getpopapi)
