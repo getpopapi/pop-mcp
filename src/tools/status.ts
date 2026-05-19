@@ -8,19 +8,22 @@ const GetInvoiceStatusSchema = z.object({
   uuid: z.string().uuid().describe("Invoice UUID returned by pop_create_sdi_invoice when submit_to_sdi=true"),
   response_format: z.enum(["markdown", "json"]).default("markdown")
     .describe("Output format: 'markdown' for human-readable, 'json' for structured data"),
-}).strict();
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
 
 const GetPeppolDocumentSchema = z.object({
   uuid: z.string().uuid().describe("Peppol document UUID returned by pop_create_peppol_invoice when submit_to_peppol=true"),
   zone: z.string().length(2).optional()
     .describe("Country code of the Peppol access point zone (e.g. 'BE' for Belgium). Required for some countries."),
   response_format: z.enum(["markdown", "json"]).default("markdown"),
-}).strict();
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
 
 const GetSdiDocumentSchema = z.object({
   uuid: z.string().uuid().describe("SdI document UUID to retrieve"),
   response_format: z.enum(["markdown", "json"]).default("markdown"),
-}).strict();
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
 
 function formatNotifications(
   notifications: DocumentNotification[],
@@ -88,6 +91,7 @@ Args:
           API_ENDPOINTS.documentNotifications,
           {
             license_key: getApiKey(),
+            ...(params.environment ? { environment: params.environment } : {}),
             integration: { uuid: params.uuid },
           }
         );
@@ -144,6 +148,7 @@ Args:
           API_ENDPOINTS.peppolDocumentGet,
           {
             license_key: getApiKey(),
+            ...(params.environment ? { environment: params.environment } : {}),
             integration,
           }
         );
@@ -197,6 +202,7 @@ Args:
           API_ENDPOINTS.sdiDocumentGet,
           {
             license_key: getApiKey(),
+            ...(params.environment ? { environment: params.environment } : {}),
             integration: { uuid: params.uuid },
           }
         );

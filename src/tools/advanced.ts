@@ -5,11 +5,13 @@ import { API_ENDPOINTS } from "../constants.js";
 
 const VerifySdiDocumentSchema = z.object({
   xml_base64: z.string().describe("The SdI XML document encoded as a Base64 string"),
-}).strict();
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
 
 const PreserveDocumentSchema = z.object({
   uuid: z.string().uuid().describe("UUID of the SdI document to archive/preserve in long-term storage"),
-}).strict();
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
 
 function formatVerificationResult(result: unknown, type: string): string {
   if (typeof result === "string") return result;
@@ -66,6 +68,7 @@ Args:
           {
             license_key: getApiKey(),
             skip_business_check: true,
+            ...(params.environment ? { environment: params.environment } : {}),
             integration: { xml: params.xml_base64 },
           }
         );
@@ -113,6 +116,7 @@ Args:
           API_ENDPOINTS.sdiDocumentPreserve,
           {
             license_key: getApiKey(),
+            ...(params.environment ? { environment: params.environment } : {}),
             integration: { uuid: params.uuid },
           }
         );

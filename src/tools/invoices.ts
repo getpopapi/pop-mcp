@@ -30,6 +30,7 @@ const CreateSdiInvoiceSchema = z.object({
   plugin_version: z.string().optional().describe("Caller application version"),
   site_title: z.string().optional().describe("Site/shop title"),
   site_url: z.string().url().optional().describe("Site/shop URL"),
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
 });
 
 const CreatePeppolInvoiceSchema = z.object({
@@ -43,6 +44,7 @@ const CreatePeppolInvoiceSchema = z.object({
   plugin_version: z.string().optional(),
   site_title: z.string().optional(),
   site_url: z.string().url().optional(),
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
 });
 
 const CreatePdfInvoiceSchema = z.object({
@@ -52,6 +54,7 @@ const CreatePdfInvoiceSchema = z.object({
   plugin_version: z.string().optional(),
   site_title: z.string().optional(),
   site_url: z.string().url().optional(),
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
 });
 
 function buildBasePayload(
@@ -60,6 +63,7 @@ function buildBasePayload(
     plugin_version?: string;
     site_title?: string;
     site_url?: string;
+    environment?: string;
   }
 ): Record<string, unknown> {
   return {
@@ -69,6 +73,7 @@ function buildBasePayload(
     ...(extras?.plugin_version ? { plugin_version: extras.plugin_version } : {}),
     ...(extras?.site_title ? { site_title: extras.site_title } : {}),
     ...(extras?.site_url ? { site_url: extras.site_url } : {}),
+    ...(extras?.environment ? { environment: extras.environment } : {}),
     data,
   };
 }
@@ -136,6 +141,7 @@ Args:
             plugin_version: params.plugin_version,
             site_title: params.site_title,
             site_url: params.site_url,
+            environment: params.environment,
           }),
           ...(integration ? { integration } : {}),
         };
@@ -204,6 +210,7 @@ Args:
             plugin_version: params.plugin_version,
             site_title: params.site_title,
             site_url: params.site_url,
+            environment: params.environment,
           }),
           ...(integration ? { integration } : {}),
         };
@@ -269,6 +276,7 @@ Args:
           plugin_version: params.plugin_version,
           site_title: params.site_title,
           site_url: params.site_url,
+          environment: params.environment,
         });
 
         const result = await apiPost<unknown>(API_ENDPOINTS.createPdf, payload);
