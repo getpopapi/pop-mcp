@@ -17,11 +17,11 @@ export interface IntegrationConfig {
 export interface CreateInvoiceResponse {
   success: boolean;
   message?: string;
-  integration?: {
-    uuid: string;
-    status: string;
-    type: string;
+  integration?: string;
+  data?: {
+    uuid?: string;
   };
+  code?: number;
   document_number?: string;
   pdf_url?: string;
 }

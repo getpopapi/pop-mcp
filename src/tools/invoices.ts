@@ -87,10 +87,12 @@ function formatInvoiceResponse(result: CreateInvoiceResponse): string {
   if (result.message) lines.push(`**Status:** ${result.message}`);
   if (result.integration) {
     lines.push("", "## Submission Details");
-    lines.push(`**UUID:** ${result.integration.uuid}`);
-    lines.push(`**Status:** ${result.integration.status}`);
-    lines.push(`**Type:** ${result.integration.type}`);
-    lines.push("", "_Use `pop_get_invoice_status` with this UUID to track SdI processing._");
+    lines.push(`**Integration:** ${result.integration}`);
+    if (result.data?.uuid) {
+      lines.push(`**UUID:** ${result.data.uuid}`);
+      lines.push("", "_Use `pop_get_invoice_status` with this UUID to track SdI processing._");
+    }
+    if (result.code) lines.push(`**Code:** ${result.code}`);
   }
   if (result.pdf_url) {
     lines.push("", `**PDF URL:** ${result.pdf_url}`);
@@ -152,9 +154,13 @@ Args:
         );
 
         if (typeof result === "string") {
-          return {
-            content: [{ type: "text", text: result }],
-          };
+          try {
+            const parsed = JSON.parse(result) as CreateInvoiceResponse;
+            const text = formatInvoiceResponse(parsed);
+            return { content: [{ type: "text", text }], structuredContent: parsed as unknown as Record<string, unknown> };
+          } catch {
+            return { content: [{ type: "text", text: result }] };
+          }
         }
 
         const text = formatInvoiceResponse(result as CreateInvoiceResponse);
@@ -221,7 +227,13 @@ Args:
         );
 
         if (typeof result === "string") {
-          return { content: [{ type: "text", text: result }] };
+          try {
+            const parsed = JSON.parse(result) as CreateInvoiceResponse;
+            const text = formatInvoiceResponse(parsed);
+            return { content: [{ type: "text", text }], structuredContent: parsed as unknown as Record<string, unknown> };
+          } catch {
+            return { content: [{ type: "text", text: result }] };
+          }
         }
 
         const text = formatInvoiceResponse(result as CreateInvoiceResponse);
