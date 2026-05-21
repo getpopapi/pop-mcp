@@ -1,7 +1,7 @@
 {
   "name": "@getpopapi/pop-mcp",
   "mcpName": "io.github.getpopapi/pop-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for POP Cloud API — Italian e-invoicing (SdI/FatturaPA), Peppol, and PDF invoice generation",
   "type": "module",
   "main": "dist/index.js",
