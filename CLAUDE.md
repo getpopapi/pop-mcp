@@ -1,4 +1,4 @@
-# pop-mcp-server — Project Context for Claude
+# pop-mcp — Project Context for Claude
 
 ## What This Project Is
 
@@ -139,6 +139,6 @@ Build must pass cleanly (`tsc` zero errors) before any release.
 - [x] Build passes with zero TypeScript errors
 - [x] Tools verified via `tools/list` MCP call
 - [x] README ready for GitHub MCP Registry submission
-- [ ] Publish to npm as `pop-mcp-server`
+- [ ] Publish to npm as `pop-mcp`
 - [ ] Submit PR to [MCP Registry](https://github.com/modelcontextprotocol/servers)
 - [ ] Add evaluation questions (see `/root/.claude/skills/mcp-builder/reference/evaluation.md`)

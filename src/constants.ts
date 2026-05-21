@@ -18,4 +18,4 @@ export const CHARACTER_LIMIT = 25000;
 
 export const DEFAULT_TIMEOUT_MS = 30000;
 
-export const USER_AGENT = "pop-mcp-server/1.0.0";
+export const USER_AGENT = "pop-mcp/1.0.0";

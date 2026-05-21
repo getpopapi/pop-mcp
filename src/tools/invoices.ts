@@ -68,7 +68,7 @@ function buildBasePayload(
 ): Record<string, unknown> {
   return {
     license_key: getApiKey(),
-    user_agent: "pop-mcp-server",
+    user_agent: "pop-mcp",
     user_agent_version: "1.0.0",
     ...(extras?.plugin_version ? { plugin_version: extras.plugin_version } : {}),
     ...(extras?.site_title ? { site_title: extras.site_title } : {}),

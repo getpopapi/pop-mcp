@@ -1,8 +1,8 @@
-# pop-mcp-server
+# pop-mcp
 
 MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, submit, and manage Italian e-invoices (FatturaPA/SdI), Peppol invoices, and PDF invoices directly from AI assistants.
 
-> **npm:** `@getpopapi/pop-mcp-server`
+> **npm:** `@getpopapi/pop-mcp`
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)](https://nodejs.org/)
@@ -88,14 +88,14 @@ API-only users can activate their account and obtain a `license_key` with this f
 ### From npm (recommended)
 
 ```bash
-npm install -g @getpopapi/pop-mcp-server
+npm install -g @getpopapi/pop-mcp
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/getpopapi/pop-mcp-server
-cd pop-mcp-server
+git clone https://github.com/getpopapi/pop-mcp
+cd pop-mcp
 npm install
 npm run build
 ```
@@ -128,7 +128,7 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "pop": {
-      "command": "pop-mcp-server",
+      "command": "pop-mcp",
       "env": {
         "POP_API_KEY": "your_license_key_here"
       }
@@ -144,7 +144,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "pop": {
       "command": "node",
-      "args": ["/path/to/pop-mcp-server/dist/index.js"],
+      "args": ["/path/to/pop-mcp/dist/index.js"],
       "env": {
         "POP_API_KEY": "your_license_key_here"
       }
@@ -187,7 +187,7 @@ Generate an Italian FatturaPA XML document. Optionally submit it to the SdI (Sis
 ```json
 {
   "license_key": "YOUR_LICENSE_KEY",
-  "user_agent": "pop-mcp-server",
+  "user_agent": "pop-mcp",
   "user_agent_version": "1.0.0",
   "data": { "...invoice fields..." },
   "integration": { "use": "sdi-via-pop", "action": "create" }
@@ -220,7 +220,7 @@ Generate a Peppol UBL 2.1 document. Optionally submit it to the Peppol network.
 ```json
 {
   "license_key": "YOUR_LICENSE_KEY",
-  "user_agent": "pop-mcp-server",
+  "user_agent": "pop-mcp",
   "user_agent_version": "1.0.0",
   "data": { "...invoice fields..." },
   "integration": { "use": "peppol-via-pop", "action": "create" }
@@ -260,7 +260,7 @@ Generate a branded PDF invoice. Optionally email it to up to 3 recipients.
 ```json
 {
   "license_key": "YOUR_LICENSE_KEY",
-  "user_agent": "pop-mcp-server",
+  "user_agent": "pop-mcp",
   "user_agent_version": "1.0.0",
   "data": {
     "...invoice fields...",

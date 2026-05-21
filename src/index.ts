@@ -6,7 +6,7 @@ import { registerStatusTools } from "./tools/status.js";
 import { registerAdvancedTools } from "./tools/advanced.js";
 
 const server = new McpServer({
-  name: "pop-mcp-server",
+  name: "pop-mcp",
   version: "1.0.0",
 });
 
