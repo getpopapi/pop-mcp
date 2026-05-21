@@ -84,6 +84,25 @@ The `data` parameter for all creation tools mirrors the FatturaPA structure:
 - Bank transfer (MP05) requires `beneficiary`, `financial_institution`, `iban`
 - PDF email: max 3 recipients, Basic+ plan required
 
+## Integration Object (`integration` field)
+
+Valid values for the `integration` object on create endpoints:
+
+**SdI** (`pop_create_sdi_invoice`):
+- `{ "use": "sdi-via-pop", "action": "create"|"update"|"delete" }` — also accepts `"sdi"` as alias for `use`
+- `{ "use": "pop-to-webhook", "action": "create"|"update"|"delete", "id": "<webhook-id>" }`
+- `{ "use": "fatture-in-cloud", "action": "create"|"update"|"delete" }`
+
+**Peppol** (`pop_create_peppol_invoice`):
+- `{ "use": "peppol-via-pop", "action": "create"|"update"|"delete" }` — also accepts `"peppol"` as alias for `use`
+- `{ "use": "pop-to-webhook", "action": "create"|"update"|"delete", "id": "<webhook-id>" }`
+
+`action` defaults to `"create"` in all cases.
+
+## Peppol / ACube Error Notes
+
+- **"No owned LegalEntity was found within the document" (422)**: ACube error meaning the supplier's VAT number in `transfer_lender` does not match any LegalEntity registered in the POP/ACube Peppol account. Fix: ensure the supplier is enrolled as a Peppol participant in the POP dashboard and that `transfer_lender.personal_data.tax_id_vat.id_code` matches exactly.
+
 ---
 
 ## Build & Run

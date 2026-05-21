@@ -202,12 +202,12 @@ export type InvoiceData = z.infer<typeof InvoiceDataSchema>;
 // ─── Integration schemas ──────────────────────────────────────────────────────
 
 export const SdiIntegrationSchema = z.object({
-  use: z.literal("sdi-via-pop").describe("Use SdI via POP integration"),
+  use: z.enum(["sdi-via-pop", "sdi"]).describe("Use SdI via POP integration"),
   action: z.enum(["create", "update", "delete"]).default("create"),
 }).strict();
 
 export const PeppolIntegrationSchema = z.object({
-  use: z.literal("peppol-via-pop").describe("Use Peppol via POP integration"),
+  use: z.enum(["peppol-via-pop", "peppol"]).describe("Use Peppol via POP integration"),
   action: z.enum(["create", "update", "delete"]).default("create"),
 }).strict();
 
