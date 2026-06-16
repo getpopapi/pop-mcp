@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerInvoiceTools } from "./tools/invoices.js";
 import { registerStatusTools } from "./tools/status.js";
 import { registerAdvancedTools } from "./tools/advanced.js";
+import { registerOnboardingTools } from "./tools/onboarding.js";
 
 const server = new McpServer({
   name: "pop-mcp",
@@ -13,6 +14,7 @@ const server = new McpServer({
 registerInvoiceTools(server);
 registerStatusTools(server);
 registerAdvancedTools(server);
+registerOnboardingTools(server);
 
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();

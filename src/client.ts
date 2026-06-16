@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
-import { API_BASE_URLS, DEFAULT_TIMEOUT_MS, USER_AGENT } from "./constants.js";
+import { API_BASE_URLS, ONBOARDING_BASE_URLS, DEFAULT_TIMEOUT_MS, USER_AGENT } from "./constants.js";
 import type { Environment } from "./types.js";
 
 let apiClient: AxiosInstance | null = null;
@@ -69,6 +69,45 @@ export function handleApiError(error: unknown): string {
   }
   const msg = error instanceof Error ? error.message : String(error);
   return `Unexpected error: ${msg}`;
+}
+
+function getOnboardingBaseUrl(): string {
+  return ONBOARDING_BASE_URLS[getEnvironment()];
+}
+
+export async function apiOnboardingPost<T>(
+  endpoint: string,
+  payload: Record<string, unknown>,
+  token?: string
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "User-Agent": USER_AGENT,
+  };
+  if (token) headers["X-Onboarding-Token"] = token;
+  const response = await axios.post<T>(
+    `${getOnboardingBaseUrl()}${endpoint}`,
+    payload,
+    { headers, timeout: DEFAULT_TIMEOUT_MS }
+  );
+  return response.data;
+}
+
+export async function apiOnboardingGet<T>(
+  endpoint: string,
+  token: string
+): Promise<T> {
+  const response = await axios.get<T>(
+    `${getOnboardingBaseUrl()}${endpoint}`,
+    {
+      headers: {
+        "User-Agent": USER_AGENT,
+        "X-Onboarding-Token": token,
+      },
+      timeout: DEFAULT_TIMEOUT_MS,
+    }
+  );
+  return response.data;
 }
 
 function getErrorHint(status: number, code?: string): string {

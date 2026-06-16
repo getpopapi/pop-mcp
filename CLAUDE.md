@@ -63,17 +63,148 @@ src/
 - **Environment:** controlled by `POP_ENVIRONMENT=staging|production` (default: production)
 - **No OAuth**, no bearer tokens — license key only
 
-## Invoice Data Model (summary)
+## Invoice Data Model (official payload structure)
 
-The `data` parameter for all creation tools mirrors the FatturaPA structure:
-- `transmitter_data` — who sends (usually same as supplier)
-- `transfer_lender` — supplier/seller with `tax_regime` (e.g. RF01)
-- `transferee_client` — customer/buyer; `tax_id_code` required for Italian private individuals
-- `invoice_body.general_data` — `doc_type` (TD01/TD04), `date`, `invoice_number`, `currency`
-- `order_items[]` — line items with `rate` (VAT %), `unit_price`, `total_price`, `total_tax`
-- `payment_data` — `terms_payment` (TP01/TP02/TP03) + `payment_details` (MP01–MP23)
-- For credit notes (`type: "credit_note"`): `connected_invoice_data[]` is required
-- For PDF: populate `data.pdf` with `doc_type_title`, `head`, optionally `email_invoice`
+The `data` object for all creation tools follows this exact structure.
+**Reference file:** `rapidapi-endpoint-examples-v2.txt` — this is the canonical payload doc.
+
+### Required top-level fields in `data`
+
+```json
+{
+  "id": 1,
+  "filename": "IT12345678901_00001",
+  "type": "invoice",
+  "version": "FPR12",
+  "sdi_type": "ABC1234",
+  "customer_type": "company",
+  "nature": "N3.1"
+}
+```
+
+- `sdi_type` — 7 chars exactly. `0000000` for private individuals without SDI code.
+- `version` — `FPR12` (private/companies) or `FPA12` (Public Administration)
+- `customer_type` — `private` | `company` | `freelance` | `pa`
+- `nature` — required only when VAT rate is 0% (e.g. `N2.1`, `N3.1`, `N6.1`). Top-level field, NOT inside order_items.
+
+### `transmitter_data`
+
+```json
+{
+  "transmitter_id": { "country_id": "IT", "id_code": "12345678901" },
+  "progressive": "00001",
+  "transmitter_format": "FPR12",
+  "sdi_code": "ABC1234",
+  "transmitter_contact": { "phone": "+39 02 1234567", "email": "info@acmesrl.it" },
+  "recipient_pec": "optional@pec.it"
+}
+```
+
+### `transfer_lender` (supplier)
+
+```json
+{
+  "personal_data": {
+    "tax_id_vat": { "country_id": "IT", "id_code": "12345678901", "tax_regime": "RF01" },
+    "company_name": "Acme Srl"
+  },
+  "place": { "address": "Via Roma 1", "zip_code": "20121", "city": "Milano", "province_id": "MI", "country_id": "IT" },
+  "contact": { "phone": "+39 02 1234567", "email": "info@acmesrl.it" }
+}
+```
+
+### `transferee_client` (customer)
+
+```json
+{
+  "personal_data": {
+    "tax_id_vat": { "country_id": "IT", "id_code": "98765432101" },
+    "tax_id_code": "RSSMRA80A01H501U",
+    "company_name": "Cliente SpA",
+    "first_name": "Mario",
+    "last_name": "Rossi",
+    "email": "customer@example.it"
+  },
+  "place": { "address": "Via Verdi 5", "zip_code": "00100", "city": "Roma", "province_id": "RM", "country_id": "IT" }
+}
+```
+
+- `tax_id_code` (codice fiscale) required for Italian private individuals
+- `tax_id_vat.id_code` — use empty string `""` for private individuals without VAT
+
+### `invoice_body`
+
+```json
+{
+  "general_data": {
+    "doc_type": "TD01",
+    "currency": "EUR",
+    "date": "2025-01-15",
+    "invoice_number": "WEB1/2025"
+  },
+  "total_document_amount": "1220.00"
+}
+```
+
+- `doc_type`: `TD01` = invoice, `TD04` = credit note
+- `order_items` and `payment_data` are **NOT** inside `invoice_body` — they are top-level `data` fields
+
+### `order_items[]` (top-level in `data`)
+
+```json
+[{
+  "item_code": { "type": "INTERNO", "value": "001" },
+  "item_type": "product",
+  "gift_product": null,
+  "description": "Consulenza informatica",
+  "quantity": "1.00",
+  "unit": "N.",
+  "unit_price": "1000.00",
+  "total_price": "1000.00",
+  "rate": "22.00",
+  "total_tax": 220.00
+}]
+```
+
+- `quantity`, `unit_price`, `total_price`, `rate` — **strings** (not numbers)
+- `total_tax` — **number** (only numeric field)
+- `item_type`: `product` | `shipping` | `fee`
+- No `line_number` field
+
+### `payment_data` (top-level in `data`)
+
+```json
+{
+  "terms_payment": "TP02",
+  "payment_details": "MP05",
+  "payment_amount": "1220.00",
+  "beneficiary": "Acme Srl",
+  "financial_institution": "Banca Esempio",
+  "iban": "IT60X0542811101000000123456"
+}
+```
+
+- `payment_details` is a **string enum** (e.g. `"MP05"`), NOT an array
+- `beneficiary`, `financial_institution`, `iban` required for MP05 (bank transfer)
+- Terms: `TP01`=instalment, `TP02`=full, `TP03`=advance
+- Methods: `MP01`=Cash, `MP02`=Check, `MP05`=Bank Transfer, `MP08`=Credit Card, `MP16`=Direct Debit, `MP19`=SEPA
+
+### `pdf` (only for `pop_create_pdf_invoice`, top-level in `data`)
+
+```json
+{
+  "invoice_html": "false",
+  "doc_type_title": "Fattura",
+  "logo_url": "https://acmesrl.it/logo.png",
+  "head": {
+    "store_info_address": "Via Roma 1, 20121 Milano (MI)",
+    "billing": [{ "first_name": "Mario", "last_name": "Rossi", "address_1": "Via Verdi 5", "city": "Roma", "postcode": "00100", "country": "IT" }]
+  },
+  "total_tax": "110.00",
+  "footer_text": "Grazie per averci scelto.",
+  "email_invoice": { "to": ["customer@example.it"], "from": "noreply@acmesrl.it" }
+}
+```
 
 ## Key Domain Rules
 
@@ -134,11 +265,16 @@ Build must pass cleanly (`tsc` zero errors) before any release.
 
 ## Status
 
-- [x] All 8 tools implemented and registered
+- [x] All 8 invoice tools implemented and registered
+- [x] 5 onboarding tools implemented and registered (v1.1.0)
 - [x] Full Zod schemas for invoice data validation
 - [x] Build passes with zero TypeScript errors
 - [x] Tools verified via `tools/list` MCP call
-- [x] README ready for GitHub MCP Registry submission
-- [ ] Publish to npm as `pop-mcp`
-- [ ] Submit PR to [MCP Registry](https://github.com/modelcontextprotocol/servers)
+- [x] README updated with auth section, correct payload docs, brand consistency
+- [x] Published to npm as `@getpopapi/pop-mcp@1.0.2`
+- [x] Published to MCP Registry as `io.github.popapidev/pop-mcp`
+- [x] Canonical payload structure documented in `rapidapi-endpoint-examples-v2.txt`
+- [ ] Publish v1.1.0 to npm and MCP Registry
+- [ ] Update `io.github.popapidev` → `io.github.getpopapi` once org membership is public
 - [ ] Add evaluation questions (see `/root/.claude/skills/mcp-builder/reference/evaluation.md`)
+- [ ] Update RapidAPI endpoint examples to v2 payload format
