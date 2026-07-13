@@ -35,13 +35,13 @@ MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, s
 |------|----------|------|
 | `pop_get_invoice_status` | POST `/sdi-via-pop/document-notifications` | Any |
 | `pop_get_peppol_document` | POST `/peppol/document-get` | Basic+ |
-| `pop_get_sdi_document` | POST `/sdi-via-pop/document-get` | Growth+ |
+| `pop_get_sdi_document` | POST `/sdi-via-pop/document-get` | Basic+ |
 
 ### Validation & Advanced SdI
 | Tool | Endpoint | Plan |
 |------|----------|------|
-| `pop_verify_sdi_document` | POST `/sdi-via-pop/document-verify` | Growth+ |
-| `pop_preserve_document` | POST `/sdi-via-pop/document-preserve` | Growth+ |
+| `pop_verify_sdi_document` | POST `/sdi-via-pop/document-verify` | Basic+ |
+| `pop_preserve_document` | POST `/sdi-via-pop/document-preserve` | Basic+ |
 
 ---
 
@@ -173,7 +173,7 @@ Generate an Italian FatturaPA XML document. Optionally submit it to the SdI (Sis
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `data` | object | ✅ | Full invoice data (see Invoice Data Structure) |
-| `submit_to_sdi` | boolean | — | Set `true` to submit to SdI. Requires Growth+ plan with active SdI integration. Default: `false` |
+| `submit_to_sdi` | boolean | — | Set `true` to submit to SdI. Requires Basic+ plan with active SdI integration. Default: `false` |
 | `integration` | object | — | Override integration config. Overrides `submit_to_sdi` if set. |
 | `environment` | string | — | Target environment (e.g. `"sandbox"`) |
 
@@ -351,7 +351,7 @@ Retrieve an archived SdI (FatturaPA) document from POP storage by UUID.
 }
 ```
 
-Requires: Growth+ plan with active SdI integration.
+Requires: Basic+ plan with active SdI integration.
 
 ---
 
@@ -378,7 +378,7 @@ Validate an SdI XML document for compliance before submission. Does not submit t
 
 **Validation checks performed:** XML schema conformance · fiscal code format · VAT number validity · required field presence · amount consistency
 
-Requires: Growth+ plan with active SdI integration and registered business.
+Requires: Basic+ plan with active SdI integration and registered business.
 
 ---
 
@@ -404,7 +404,7 @@ Archive an SdI document in certified long-term digital storage (conservazione so
 
 > **Important:** Only call this tool when `pop_get_invoice_status` returns status `RC` (Ricevuta di Consegna) or `MC` (Mancata Consegna). Do not call for statuses `NS`, `EC`, `SE`, or `DT`.
 
-Requires: Growth+ plan with active SdI integration.
+Requires: Basic+ plan with active SdI integration.
 
 ---
 
@@ -443,8 +443,8 @@ Ask your AI assistant:
 | SdI submission | ❌ | ✅ | ✅ |
 | Peppol submission | ❌ | ✅ | ✅ |
 | PDF email delivery | ❌ | ✅ | ✅ |
-| SdI document verification | ❌ | ✅ Growth+ | ✅ |
-| Document preservation | ❌ | ✅ Growth+ | ✅ |
+| SdI document verification | ❌ | ✅ | ✅ |
+| Document preservation | ❌ | ✅ | ✅ |
 
 ---
 
