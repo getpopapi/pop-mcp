@@ -1,7 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { apiPost, handleApiError, getApiKey } from "../client.js";
+import { apiPost, handleApiError } from "../client.js";
 import { API_ENDPOINTS } from "../constants.js";
+import type { ApiContext } from "../types.js";
 
 const VerifySdiDocumentSchema = z.object({
   xml_base64: z.string().describe("The SdI XML document encoded as a Base64 string"),
@@ -32,7 +33,7 @@ function formatVerificationResult(result: unknown, type: string): string {
   return lines.join("\n");
 }
 
-export function registerAdvancedTools(server: McpServer): void {
+export function registerAdvancedTools(server: McpServer, ctx: ApiContext): void {
   // ── Verify SdI Document (pre-submission validation) ───────────────────────
   server.registerTool(
     "pop_verify_sdi_document",
@@ -66,11 +67,12 @@ Args:
         const result = await apiPost<unknown>(
           API_ENDPOINTS.sdiDocumentVerify,
           {
-            license_key: getApiKey(),
+            license_key: ctx.apiKey,
             skip_business_check: true,
             ...(params.environment ? { environment: params.environment } : {}),
             integration: { xml: params.xml_base64 },
-          }
+          },
+          ctx
         );
 
         const text = formatVerificationResult(result, "SdI Document");
@@ -115,10 +117,11 @@ Args:
         const result = await apiPost<unknown>(
           API_ENDPOINTS.sdiDocumentPreserve,
           {
-            license_key: getApiKey(),
+            license_key: ctx.apiKey,
             ...(params.environment ? { environment: params.environment } : {}),
             integration: { uuid: params.uuid },
-          }
+          },
+          ctx
         );
 
         const text =

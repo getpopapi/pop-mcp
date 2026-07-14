@@ -1,8 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { apiPost, handleApiError, getApiKey } from "../client.js";
+import { apiPost, handleApiError } from "../client.js";
 import { API_ENDPOINTS, CHARACTER_LIMIT } from "../constants.js";
-import type { NotificationsResponse, DocumentNotification } from "../types.js";
+import type { ApiContext, NotificationsResponse, DocumentNotification } from "../types.js";
 
 const GetInvoiceStatusSchema = z.object({
   uuid: z.string().uuid().describe("Invoice UUID returned by pop_create_sdi_invoice when submit_to_sdi=true"),
@@ -56,7 +56,7 @@ function formatNotifications(
   return lines.join("\n");
 }
 
-export function registerStatusTools(server: McpServer): void {
+export function registerStatusTools(server: McpServer, ctx: ApiContext): void {
   // ── Get Invoice Status (SdI Notifications) ───────────────────────────────
   server.registerTool(
     "pop_get_invoice_status",
@@ -90,10 +90,11 @@ Args:
         const result = await apiPost<NotificationsResponse>(
           API_ENDPOINTS.documentNotifications,
           {
-            license_key: getApiKey(),
+            license_key: ctx.apiKey,
             ...(params.environment ? { environment: params.environment } : {}),
             integration: { uuid: params.uuid },
-          }
+          },
+          ctx
         );
 
         if (params.response_format === "json") {
@@ -147,10 +148,11 @@ Args:
         const result = await apiPost<unknown>(
           API_ENDPOINTS.peppolDocumentGet,
           {
-            license_key: getApiKey(),
+            license_key: ctx.apiKey,
             ...(params.environment ? { environment: params.environment } : {}),
             integration,
-          }
+          },
+          ctx
         );
 
         let text: string;
@@ -201,10 +203,11 @@ Args:
         const result = await apiPost<unknown>(
           API_ENDPOINTS.sdiDocumentGet,
           {
-            license_key: getApiKey(),
+            license_key: ctx.apiKey,
             ...(params.environment ? { environment: params.environment } : {}),
             integration: { uuid: params.uuid },
-          }
+          },
+          ctx
         );
 
         let text: string;

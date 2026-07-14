@@ -3,6 +3,7 @@ import { z } from "zod";
 import { apiOnboardingPost, apiOnboardingGet, handleApiError } from "../client.js";
 import { ONBOARDING_ENDPOINTS } from "../constants.js";
 import type {
+  ApiContext,
   OnboardingApiResponse,
   OnboardingRequestOtpData,
   OnboardingVerifyOtpData,
@@ -262,7 +263,10 @@ function formatSaveAccountSetupResponse(data: Record<string, unknown>): string {
 
 // ── Tool registration ─────────────────────────────────────────────────────────
 
-export function registerOnboardingTools(server: McpServer): void {
+export function registerOnboardingTools(
+  server: McpServer,
+  ctx: Pick<ApiContext, "environment">
+): void {
   // ── Request OTP ────────────────────────────────────────────────────────────
   server.registerTool(
     "pop_onboarding_request_otp",
@@ -295,7 +299,8 @@ No API key required for this call.`,
 
         const result = await apiOnboardingPost<OnboardingApiResponse<OnboardingRequestOtpData>>(
           ONBOARDING_ENDPOINTS.requestOtp,
-          payload
+          payload,
+          ctx.environment
         );
 
         const text = formatRequestOtpResponse(result.data);
@@ -346,7 +351,8 @@ No API key required for this call.`,
 
         const result = await apiOnboardingPost<OnboardingApiResponse<OnboardingVerifyOtpData>>(
           ONBOARDING_ENDPOINTS.verifyOtp,
-          payload
+          payload,
+          ctx.environment
         );
 
         const text = formatVerifyOtpResponse(result.data);
@@ -389,7 +395,8 @@ Key behaviours:
       try {
         const result = await apiOnboardingGet<OnboardingApiResponse<Record<string, unknown>>>(
           ONBOARDING_ENDPOINTS.status,
-          params.onboarding_token
+          params.onboarding_token,
+          ctx.environment
         );
 
         const text = formatStatusResponse(result.data);
@@ -435,7 +442,8 @@ Key behaviours:
       try {
         const result = await apiOnboardingGet<OnboardingApiResponse<OnboardingWizardPayload>>(
           ONBOARDING_ENDPOINTS.accountSetup,
-          params.onboarding_token
+          params.onboarding_token,
+          ctx.environment
         );
 
         const text = formatAccountSetupResponse(result.data);
@@ -489,6 +497,7 @@ Key behaviours:
         const result = await apiOnboardingPost<OnboardingApiResponse<Record<string, unknown>>>(
           ONBOARDING_ENDPOINTS.accountSetup,
           payload,
+          ctx.environment,
           params.onboarding_token
         );
 

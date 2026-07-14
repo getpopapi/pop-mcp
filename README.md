@@ -35,13 +35,13 @@ MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, s
 |------|----------|------|
 | `pop_get_invoice_status` | POST `/sdi-via-pop/document-notifications` | Any |
 | `pop_get_peppol_document` | POST `/peppol/document-get` | Basic+ |
-| `pop_get_sdi_document` | POST `/sdi-via-pop/document-get` | Growth+ |
+| `pop_get_sdi_document` | POST `/sdi-via-pop/document-get` | Basic+ |
 
 ### Validation & Advanced SdI
 | Tool | Endpoint | Plan |
 |------|----------|------|
-| `pop_verify_sdi_document` | POST `/sdi-via-pop/document-verify` | Growth+ |
-| `pop_preserve_document` | POST `/sdi-via-pop/document-preserve` | Growth+ |
+| `pop_verify_sdi_document` | POST `/sdi-via-pop/document-verify` | Basic+ |
+| `pop_preserve_document` | POST `/sdi-via-pop/document-preserve` | Basic+ |
 
 ---
 
@@ -160,6 +160,60 @@ Add to your `claude_desktop_config.json`:
 
 ---
 
+## Remote MCP (HTTP)
+
+`pop-mcp` is also available as a remote, generic MCP server at:
+
+```
+https://mcp.popapi.io/mcp
+```
+
+This is a shared, multi-tenant endpoint — unlike the stdio path above, it does **not** read
+`POP_API_KEY` from the server's environment. Every request must carry your own POP license key as
+a Bearer token:
+
+```
+Authorization: Bearer <your_license_key>
+```
+
+Any MCP-speaking HTTP client can connect: Claude (remote connector), the OpenAI Responses API,
+n8n, [MCP Inspector](https://github.com/modelcontextprotocol/inspector), or a custom integration —
+not just Claude Desktop. All 13 tools (8 invoice/status/advanced + 5 onboarding) are available;
+onboarding tools use their own `onboarding_token` per call and don't require the Bearer key.
+
+**Example with MCP Inspector:**
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+Configure it to connect to `https://mcp.popapi.io/mcp` with header
+`Authorization: Bearer <your_license_key>`.
+
+**Example with curl** (`tools/list` — every request requires the Bearer header, including this one):
+
+```bash
+curl -X POST https://mcp.popapi.io/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer your_license_key_here" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+A missing or malformed `Authorization` header returns a `401` with `error_code: "unauthorized_user"`
+before any POP API call is made. An invalid-but-well-formed key is passed straight through to POP's
+API and surfaces whatever error POP returns (`unauthorized_user`, `insufficient_level`, etc.) — the
+worker does not re-validate keys itself.
+
+To run/deploy the Worker yourself:
+
+```bash
+npm run dev:worker     # wrangler dev, local
+npm run deploy:worker  # wrangler deploy
+```
+
+---
+
 ## Tool Reference
 
 The `license_key` is always injected automatically from `POP_API_KEY` — never pass it manually.
@@ -173,7 +227,7 @@ Generate an Italian FatturaPA XML document. Optionally submit it to the SdI (Sis
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `data` | object | ✅ | Full invoice data (see Invoice Data Structure) |
-| `submit_to_sdi` | boolean | — | Set `true` to submit to SdI. Requires Growth+ plan with active SdI integration. Default: `false` |
+| `submit_to_sdi` | boolean | — | Set `true` to submit to SdI. Requires Basic+ plan with active SdI integration. Default: `false` |
 | `integration` | object | — | Override integration config. Overrides `submit_to_sdi` if set. |
 | `environment` | string | — | Target environment (e.g. `"sandbox"`) |
 
@@ -351,7 +405,7 @@ Retrieve an archived SdI (FatturaPA) document from POP storage by UUID.
 }
 ```
 
-Requires: Growth+ plan with active SdI integration.
+Requires: Basic+ plan with active SdI integration.
 
 ---
 
@@ -378,7 +432,7 @@ Validate an SdI XML document for compliance before submission. Does not submit t
 
 **Validation checks performed:** XML schema conformance · fiscal code format · VAT number validity · required field presence · amount consistency
 
-Requires: Growth+ plan with active SdI integration and registered business.
+Requires: Basic+ plan with active SdI integration and registered business.
 
 ---
 
@@ -404,7 +458,7 @@ Archive an SdI document in certified long-term digital storage (conservazione so
 
 > **Important:** Only call this tool when `pop_get_invoice_status` returns status `RC` (Ricevuta di Consegna) or `MC` (Mancata Consegna). Do not call for statuses `NS`, `EC`, `SE`, or `DT`.
 
-Requires: Growth+ plan with active SdI integration.
+Requires: Basic+ plan with active SdI integration.
 
 ---
 
@@ -443,8 +497,8 @@ Ask your AI assistant:
 | SdI submission | ❌ | ✅ | ✅ |
 | Peppol submission | ❌ | ✅ | ✅ |
 | PDF email delivery | ❌ | ✅ | ✅ |
-| SdI document verification | ❌ | ✅ Growth+ | ✅ |
-| Document preservation | ❌ | ✅ Growth+ | ✅ |
+| SdI document verification | ❌ | ✅ | ✅ |
+| Document preservation | ❌ | ✅ | ✅ |
 
 ---
 

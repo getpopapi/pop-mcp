@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { apiPost, handleApiError, getApiKey } from "../client.js";
+import { apiPost, handleApiError } from "../client.js";
 import { API_ENDPOINTS } from "../constants.js";
 import {
   InvoiceDataSchema,
@@ -9,7 +9,7 @@ import {
   WebhookIntegrationSchema,
   FattureIntegrationSchema,
 } from "../schemas/invoice.js";
-import type { CreateInvoiceResponse } from "../types.js";
+import type { ApiContext, CreateInvoiceResponse } from "../types.js";
 
 const AnyIntegrationSchema = z.discriminatedUnion("use", [
   SdiIntegrationSchema,
@@ -58,6 +58,7 @@ const CreatePdfInvoiceSchema = z.object({
 });
 
 function buildBasePayload(
+  apiKey: string,
   data: z.infer<typeof InvoiceDataSchema>,
   extras?: {
     plugin_version?: string;
@@ -67,7 +68,7 @@ function buildBasePayload(
   }
 ): Record<string, unknown> {
   return {
-    license_key: getApiKey(),
+    license_key: apiKey,
     user_agent: "pop-mcp",
     user_agent_version: "1.0.0",
     ...(extras?.plugin_version ? { plugin_version: extras.plugin_version } : {}),
@@ -100,7 +101,7 @@ function formatInvoiceResponse(result: CreateInvoiceResponse): string {
   return lines.join("\n");
 }
 
-export function registerInvoiceTools(server: McpServer): void {
+export function registerInvoiceTools(server: McpServer, ctx: ApiContext): void {
   // ── Create SdI (FatturaPA XML) Invoice ───────────────────────────────────
   server.registerTool(
     "pop_create_sdi_invoice",
@@ -139,7 +140,7 @@ Args:
           (params.submit_to_sdi ? { use: "sdi-via-pop" as const, action: "create" as const } : undefined);
 
         const payload = {
-          ...buildBasePayload(params.data, {
+          ...buildBasePayload(ctx.apiKey, params.data, {
             plugin_version: params.plugin_version,
             site_title: params.site_title,
             site_url: params.site_url,
@@ -150,7 +151,8 @@ Args:
 
         const result = await apiPost<string | CreateInvoiceResponse>(
           API_ENDPOINTS.createXml,
-          payload
+          payload,
+          ctx
         );
 
         if (typeof result === "string") {
@@ -212,7 +214,7 @@ Args:
           (params.submit_to_peppol ? { use: "peppol-via-pop" as const, action: "create" as const } : undefined);
 
         const payload = {
-          ...buildBasePayload(params.data, {
+          ...buildBasePayload(ctx.apiKey, params.data, {
             plugin_version: params.plugin_version,
             site_title: params.site_title,
             site_url: params.site_url,
@@ -223,7 +225,8 @@ Args:
 
         const result = await apiPost<string | CreateInvoiceResponse>(
           API_ENDPOINTS.createUbl,
-          payload
+          payload,
+          ctx
         );
 
         if (typeof result === "string") {
@@ -284,14 +287,14 @@ Args:
     },
     async (params) => {
       try {
-        const payload = buildBasePayload(params.data, {
+        const payload = buildBasePayload(ctx.apiKey, params.data, {
           plugin_version: params.plugin_version,
           site_title: params.site_title,
           site_url: params.site_url,
           environment: params.environment,
         });
 
-        const result = await apiPost<unknown>(API_ENDPOINTS.createPdf, payload);
+        const result = await apiPost<unknown>(API_ENDPOINTS.createPdf, payload, ctx);
 
         if (typeof result === "string") {
           return { content: [{ type: "text", text: result }] };
