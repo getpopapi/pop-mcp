@@ -1,22 +1,14 @@
 #!/usr/bin/env node
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { registerInvoiceTools } from "./tools/invoices.js";
-import { registerStatusTools } from "./tools/status.js";
-import { registerAdvancedTools } from "./tools/advanced.js";
-import { registerOnboardingTools } from "./tools/onboarding.js";
-
-const server = new McpServer({
-  name: "pop-mcp",
-  version: "1.0.0",
-});
-
-registerInvoiceTools(server);
-registerStatusTools(server);
-registerAdvancedTools(server);
-registerOnboardingTools(server);
+import { createPopServer } from "./server.js";
+import { getApiKey, getEnvironment } from "./client.js";
 
 async function main(): Promise<void> {
+  const server = createPopServer({
+    apiKey: getApiKey(),
+    environment: getEnvironment(),
+  });
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   process.stderr.write("POP MCP Server running on stdio\n");

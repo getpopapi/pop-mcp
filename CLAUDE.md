@@ -49,9 +49,9 @@ src/
 | `pop_create_pdf_invoice` | POST `/create-pdf` | Any (Basic+ for email) |
 | `pop_get_invoice_status` | POST `/document-notifications` | Any |
 | `pop_get_peppol_document` | POST `/peppol/document-get` | Basic+ |
-| `pop_get_sdi_document` | POST `/sdi-via-pop/document-get` | Growth+ |
-| `pop_verify_sdi_document` | POST `/sdi-via-pop/document-verify` | Growth+ |
-| `pop_preserve_document` | POST `/sdi-via-pop/document-preserve` | Growth+ |
+| `pop_get_sdi_document` | POST `/sdi/document-get` | Growth+ |
+| `pop_verify_sdi_document` | POST `/sdi/document-verify` | Growth+ |
+| `pop_preserve_document` | POST `/sdi/document-preserve` | Growth+ |
 
 ---
 
@@ -220,12 +220,12 @@ The `data` object for all creation tools follows this exact structure.
 Valid values for the `integration` object on create endpoints:
 
 **SdI** (`pop_create_sdi_invoice`):
-- `{ "use": "sdi-via-pop", "action": "create"|"update"|"delete" }` — also accepts `"sdi"` as alias for `use`
+- `{ "use": "sdi", "action": "create"|"update"|"delete" }` — canonical name; `"sdi-via-pop"` is the old alias (still accepted)
 - `{ "use": "pop-to-webhook", "action": "create"|"update"|"delete", "id": "<webhook-id>" }`
 - `{ "use": "fatture-in-cloud", "action": "create"|"update"|"delete" }`
 
 **Peppol** (`pop_create_peppol_invoice`):
-- `{ "use": "peppol-via-pop", "action": "create"|"update"|"delete" }` — also accepts `"peppol"` as alias for `use`
+- `{ "use": "peppol", "action": "create"|"update"|"delete" }` — canonical name; `"peppol-via-pop"` is the old alias (still accepted)
 - `{ "use": "pop-to-webhook", "action": "create"|"update"|"delete", "id": "<webhook-id>" }`
 
 `action` defaults to `"create"` in all cases.
@@ -278,3 +278,50 @@ Build must pass cleanly (`tsc` zero errors) before any release.
 - [ ] Update `io.github.popapidev` → `io.github.getpopapi` once org membership is public
 - [ ] Add evaluation questions (see `/root/.claude/skills/mcp-builder/reference/evaluation.md`)
 - [ ] Update RapidAPI endpoint examples to v2 payload format
+
+## Remote HTTP server (2026-07-13)
+
+Added a second transport alongside stdio: a Cloudflare Worker (`src/worker.ts`) exposing the same
+13 tools over Streamable HTTP at `https://mcp.popapi.io/mcp`, for any MCP client (Claude, OpenAI
+Responses API, n8n), not just Claude Desktop. Per management's migration doc, this is
+**multi-tenant** — each caller supplies their own POP license key via
+`Authorization: Bearer <key>` instead of the server reading a single fixed `POP_API_KEY`.
+
+Key implementation points, in case this needs picking back up:
+
+- **Fixed a real concurrency bug during the migration, not just added HTTP**: `src/client.ts` used
+  to cache one module-level axios instance with the key baked in from whichever request called
+  `getApiKey()` first — on a shared server this would leak the first caller's key to everyone
+  after them. Removed the singleton; `apiPost`/`apiOnboardingPost`/`apiOnboardingGet` now take an
+  `ApiContext { apiKey, environment }` per call, built once per request.
+- `ApiContext` is threaded through `registerInvoiceTools/StatusTools/AdvancedTools(server, ctx)`
+  (need `ctx.apiKey`) and `registerOnboardingTools(server, ctx)` (only needs `ctx.environment` —
+  onboarding auth is per-call `onboarding_token`, untouched by this change).
+- New `src/server.ts` — `createPopServer(ctx)` — is the single place both `src/index.ts` (stdio,
+  builds `ctx` once from `process.env` at startup, unchanged behavior) and `src/worker.ts` (HTTP,
+  builds `ctx` fresh per request from the `Authorization` header + Worker `env.POP_ENVIRONMENT`
+  binding) construct the `McpServer`.
+- Runs on **`WebStandardStreamableHTTPServerTransport`** (from
+  `@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js`, present since SDK 1.29.x, ships
+  under `pop-mcp`'s existing `^1.6.1` dependency range) — Fetch API `Request`/`Response` native, no
+  Node `http` shim, no Hono, no `McpAgent`/Durable Objects, no paid Workers plan required. One
+  `McpServer` per request (`sessionIdGenerator: undefined`), same stateless pattern already proven
+  on Vercel in the sibling `pop-openai-app` repo's `mcpHandler.ts`.
+- **Verified locally with `wrangler dev`** (2026-07-13): `tsc` clean, `tools/list` returns all 13
+  tools, missing/malformed `Authorization` → clean `401` with `error_code: "unauthorized_user"`
+  before any POP API call, valid Bearer → MCP `initialize`/`tools/list` succeed, `/health` → 200.
+  Two concurrent requests with different Bearer keys each got back their own distinct, isolated
+  response (no cross-talk) — as far as verifiable without a POP sandbox key or outbound internet
+  from this dev sandbox (DNS to `popapi.io` isn't reachable here; axios *did* get to the network
+  layer under `workerd` though, which is the actual Workers-compatibility question `wrangler dev`
+  was meant to answer, and it passed).
+- `wrangler.toml`: initially wrote the `mcp.popapi.io/mcp*` route as `custom_domain = true` — that
+  fails, Custom Domains don't support wildcards or paths, only whole hostnames. Fixed to a plain
+  `[[routes]]` with `zone_name = "popapi.io"`, which does support the `/mcp*` path pattern, but
+  requires `popapi.io` to already be an active zone on the Cloudflare account before `wrangler
+  deploy` will accept it.
+- **Not yet done**: live POP sandbox-key round trip, attaching the real `mcp.popapi.io` DNS/route
+  in the actual Cloudflare account (`sedwebagency@`), MCP Inspector against a deployed
+  `*.workers.dev` URL, and the pre-public checklist (rate limiting, monitoring/alerting hookup —
+  both dashboard-level, no code). See `README.md`'s new "Remote MCP (HTTP)" section for the
+  consumer-facing docs.

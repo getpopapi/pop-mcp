@@ -43,6 +43,11 @@ export interface NotificationsResponse {
 
 export type Environment = "production" | "staging";
 
+export interface ApiContext {
+  apiKey: string;
+  environment: Environment;
+}
+
 // ── Onboarding API types ──────────────────────────────────────────────────────
 
 export interface OnboardingRequestOtpData {

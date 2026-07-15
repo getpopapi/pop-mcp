@@ -160,6 +160,60 @@ Add to your `claude_desktop_config.json`:
 
 ---
 
+## Remote MCP (HTTP)
+
+`pop-mcp` is also available as a remote, generic MCP server at:
+
+```
+https://mcp.popapi.io/mcp
+```
+
+This is a shared, multi-tenant endpoint — unlike the stdio path above, it does **not** read
+`POP_API_KEY` from the server's environment. Every request must carry your own POP license key as
+a Bearer token:
+
+```
+Authorization: Bearer <your_license_key>
+```
+
+Any MCP-speaking HTTP client can connect: Claude (remote connector), the OpenAI Responses API,
+n8n, [MCP Inspector](https://github.com/modelcontextprotocol/inspector), or a custom integration —
+not just Claude Desktop. All 13 tools (8 invoice/status/advanced + 5 onboarding) are available;
+onboarding tools use their own `onboarding_token` per call and don't require the Bearer key.
+
+**Example with MCP Inspector:**
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+Configure it to connect to `https://mcp.popapi.io/mcp` with header
+`Authorization: Bearer <your_license_key>`.
+
+**Example with curl** (`tools/list` — every request requires the Bearer header, including this one):
+
+```bash
+curl -X POST https://mcp.popapi.io/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer your_license_key_here" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+A missing or malformed `Authorization` header returns a `401` with `error_code: "unauthorized_user"`
+before any POP API call is made. An invalid-but-well-formed key is passed straight through to POP's
+API and surfaces whatever error POP returns (`unauthorized_user`, `insufficient_level`, etc.) — the
+worker does not re-validate keys itself.
+
+To run/deploy the Worker yourself:
+
+```bash
+npm run dev:worker     # wrangler dev, local
+npm run deploy:worker  # wrangler deploy
+```
+
+---
+
 ## Tool Reference
 
 The `license_key` is always injected automatically from `POP_API_KEY` — never pass it manually.

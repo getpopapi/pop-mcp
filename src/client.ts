@@ -1,8 +1,6 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
+import axios, { AxiosError } from "axios";
 import { API_BASE_URLS, ONBOARDING_BASE_URLS, DEFAULT_TIMEOUT_MS, USER_AGENT } from "./constants.js";
-import type { Environment } from "./types.js";
-
-let apiClient: AxiosInstance | null = null;
+import type { ApiContext, Environment } from "./types.js";
 
 export function getApiKey(): string {
   const key = process.env.POP_API_KEY;
@@ -21,30 +19,23 @@ export function getEnvironment(): Environment {
   return "production";
 }
 
-export function getClient(): AxiosInstance {
-  if (!apiClient) {
-    const env = getEnvironment();
-    const baseURL = API_BASE_URLS[env];
-
-    apiClient = axios.create({
-      baseURL,
+export async function apiPost<T>(
+  endpoint: string,
+  payload: Record<string, unknown>,
+  ctx: ApiContext
+): Promise<T> {
+  const response = await axios.post<T>(
+    `${API_BASE_URLS[ctx.environment]}${endpoint}`,
+    payload,
+    {
       timeout: DEFAULT_TIMEOUT_MS,
       headers: {
         "Content-Type": "application/json",
         "User-Agent": USER_AGENT,
-        "X-API-Key": getApiKey(),
+        "X-API-Key": ctx.apiKey,
       },
-    });
-  }
-  return apiClient;
-}
-
-export async function apiPost<T>(
-  endpoint: string,
-  payload: Record<string, unknown>
-): Promise<T> {
-  const client = getClient();
-  const response = await client.post<T>(endpoint, payload);
+    }
+  );
   return response.data;
 }
 
@@ -71,13 +62,14 @@ export function handleApiError(error: unknown): string {
   return `Unexpected error: ${msg}`;
 }
 
-function getOnboardingBaseUrl(): string {
-  return ONBOARDING_BASE_URLS[getEnvironment()];
+function getOnboardingBaseUrl(environment: Environment): string {
+  return ONBOARDING_BASE_URLS[environment];
 }
 
 export async function apiOnboardingPost<T>(
   endpoint: string,
   payload: Record<string, unknown>,
+  environment: Environment,
   token?: string
 ): Promise<T> {
   const headers: Record<string, string> = {
@@ -86,7 +78,7 @@ export async function apiOnboardingPost<T>(
   };
   if (token) headers["X-Onboarding-Token"] = token;
   const response = await axios.post<T>(
-    `${getOnboardingBaseUrl()}${endpoint}`,
+    `${getOnboardingBaseUrl(environment)}${endpoint}`,
     payload,
     { headers, timeout: DEFAULT_TIMEOUT_MS }
   );
@@ -95,10 +87,11 @@ export async function apiOnboardingPost<T>(
 
 export async function apiOnboardingGet<T>(
   endpoint: string,
-  token: string
+  token: string,
+  environment: Environment
 ): Promise<T> {
   const response = await axios.get<T>(
-    `${getOnboardingBaseUrl()}${endpoint}`,
+    `${getOnboardingBaseUrl(environment)}${endpoint}`,
     {
       headers: {
         "User-Agent": USER_AGENT,
@@ -112,7 +105,7 @@ export async function apiOnboardingGet<T>(
 
 function getErrorHint(status: number, code?: string): string {
   if (code === "unauthorized_user") {
-    return "\nHint: Verify your POP_API_KEY is correct.";
+    return "\nHint: Verify your POP license key is correct.";
   }
   if (code === "insufficient_level") {
     return "\nHint: This operation requires a higher plan level (Basic/Growth/Pro).";
