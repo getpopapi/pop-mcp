@@ -1,9 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "echo 'no project-wide build needed - Vercel compiles api/* independently'",
-  "functions": {
-    "api/**/*.ts": {}
-  },
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/", "destination": "/api/health" }
