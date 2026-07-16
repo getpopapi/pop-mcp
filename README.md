@@ -203,14 +203,10 @@ curl -X POST https://mcp.popapi.io/mcp \
 A missing or malformed `Authorization` header returns a `401` with `error_code: "unauthorized_user"`
 before any POP API call is made. An invalid-but-well-formed key is passed straight through to POP's
 API and surfaces whatever error POP returns (`unauthorized_user`, `insufficient_level`, etc.) — the
-worker does not re-validate keys itself.
+server does not re-validate keys itself.
 
-To run/deploy the Worker yourself:
-
-```bash
-npm run dev:worker     # wrangler dev, local
-npm run deploy:worker  # wrangler deploy
-```
+This endpoint runs as a Vercel serverless function (`api/mcp.ts` → `src/mcpHandler.ts`). To run it
+locally: `npx vercel dev` (requires `vercel link` to the project first).
 
 ---
 
