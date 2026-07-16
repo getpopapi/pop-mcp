@@ -144,7 +144,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "pop": {
       "command": "node",
-      "args": ["/path/to/pop-mcp/dist/index.js"],
+      "args": ["/path/to/pop-mcp/dist/cli.js"],
       "env": {
         "POP_API_KEY": "your_license_key_here"
       }
@@ -505,14 +505,14 @@ Ask your AI assistant:
 ```bash
 npm run inspector
 # or
-npx @modelcontextprotocol/inspector dist/index.js
+npx @modelcontextprotocol/inspector dist/cli.js
 ```
 
 ### Quick Smoke Test
 
 ```bash
 POP_API_KEY=your_key node -e "
-import('./dist/index.js').catch(e => {
+import('./dist/cli.js').catch(e => {
   if (e.message.includes('stdin')) process.exit(0);
   console.error(e); process.exit(1);
 });
@@ -522,7 +522,7 @@ import('./dist/index.js').catch(e => {
 ### Test Tool Schema Listing
 
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | POP_API_KEY=test node dist/index.js
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | POP_API_KEY=test node dist/cli.js
 ```
 
 ---

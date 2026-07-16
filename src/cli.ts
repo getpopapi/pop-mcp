@@ -17,7 +17,7 @@ async function main(): Promise<void> {
 }
 
 // Only run when this file is executed directly (the stdio CLI entry point,
-// e.g. `node dist/index.js`) — never on import. This is the sole caller of
+// e.g. `node dist/cli.js`) — never on import. This is the sole caller of
 // getApiKey(), which requires a single fixed POP_API_KEY env var; the Vercel
 // HTTP path (src/mcpHandler.ts) is multi-tenant and must never reach it.
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {

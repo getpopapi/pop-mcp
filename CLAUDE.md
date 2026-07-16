@@ -254,7 +254,7 @@ Build must pass cleanly (`tsc` zero errors) before any release.
   "mcpServers": {
     "pop": {
       "command": "node",
-      "args": ["/absolute/path/to/pop-mcp/dist/index.js"],
+      "args": ["/absolute/path/to/pop-mcp/dist/cli.js"],
       "env": { "POP_API_KEY": "your_license_key_here" }
     }
   }
@@ -297,7 +297,7 @@ Key implementation points:
 - `ApiContext` is threaded through `registerInvoiceTools/StatusTools/AdvancedTools(server, ctx)`
   (need `ctx.apiKey`) and `registerOnboardingTools(server, ctx)` (only needs `ctx.environment` —
   onboarding auth is per-call `onboarding_token`, untouched by this change).
-- `src/server.ts` — `createPopServer(ctx)` — is the single place both `src/index.ts` (stdio,
+- `src/server.ts` — `createPopServer(ctx)` — is the single place both `src/cli.ts` (stdio,
   builds `ctx` once from `process.env` at startup, unchanged behavior) and `src/mcpHandler.ts`
   (HTTP, builds `ctx` fresh per request from the `Authorization` header + `process.env
   .POP_ENVIRONMENT`) construct the `McpServer`.

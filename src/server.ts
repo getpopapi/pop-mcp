@@ -7,7 +7,7 @@ import type { ApiContext } from "./types.js";
 
 /**
  * Builds a fresh McpServer with all 13 tools registered against the given
- * ApiContext. Shared by the stdio entry point (src/index.ts) and the
+ * ApiContext. Shared by the stdio entry point (src/cli.ts) and the
  * Vercel HTTP entry point (src/mcpHandler.ts) so tool wiring only lives
  * in one place.
  */
