@@ -2,6 +2,18 @@ import { z } from "zod";
 
 // ─── Sub-schemas ──────────────────────────────────────────────────────────────
 
+const optionalString = () =>
+  z.preprocess((value) => value === null ? undefined : value, z.string().optional());
+
+const optionalEmailOrEmpty = () =>
+  z.preprocess(
+    (value) => value === null ? undefined : value,
+    z.union([z.literal(""), z.string().email()]).optional()
+  );
+
+const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
+  z.preprocess((value) => value === null ? undefined : value, z.enum(values).optional());
+
 export const TaxIdVatSchema = z.object({
   country_id: z.string().length(2).describe("ISO 3166-1 alpha-2 country code (e.g. 'IT', 'DE', 'FR')"),
   id_code: z.string().min(1).describe("VAT number or tax ID (e.g. '12345678901' for Italy)"),
@@ -16,11 +28,11 @@ export const TransmitterContactSchema = z.object({
 
 export const TransmitterDataSchema = z.object({
   transmitter_id: TransmitterIdSchema.describe("Transmitter tax identification"),
-  progressive: z.string().describe("Progressive transmission ID (e.g. '00001')"),
+  progressive: optionalString().describe("Progressive transmission ID (e.g. '00001'). Optional: the API can generate one when not provided."),
   transmitter_format: z.enum(["FPR12", "FPA12"]).describe("FPR12 for private/companies, FPA12 for Public Administration"),
   sdi_code: z.string().length(7).describe("SDI destination code — 7 characters ('0000000' for private individuals)"),
   transmitter_contact: TransmitterContactSchema,
-  recipient_pec: z.string().email().optional().describe("PEC (certified email) for delivery — alternative to SDI code"),
+  recipient_pec: optionalEmailOrEmpty().describe("PEC (certified email) for delivery — alternative to SDI code. Empty string allowed when unused."),
 }).strict();
 
 export const PersonalDataLenderSchema = z.object({
@@ -50,6 +62,11 @@ export const ContactSchema = z.object({
 export const TransferLenderSchema = z.object({
   personal_data: PersonalDataLenderSchema,
   place: AddressSchema,
+  rea_registration: z.object({
+    office: z.string().optional().describe("REA registration office code"),
+    number: z.string().optional().describe("REA registration number"),
+    liquidation_status: z.string().optional().describe("Liquidation status code"),
+  }).strict().optional().describe("Optional REA registration details"),
   contact: ContactSchema,
 }).strict();
 
@@ -89,6 +106,7 @@ export const GeneralDataSchema = z.object({
 
 export const InvoiceBodySchema = z.object({
   general_data: GeneralDataSchema,
+  provident_fund: z.array(z.unknown()).optional().describe("Optional provident fund entries as accepted by the POP API"),
   total_document_amount: z.union([z.string(), z.number()]).describe("Total invoice amount including taxes (e.g. '122.00')"),
 }).strict();
 
@@ -169,6 +187,7 @@ export const PdfConfigSchema = z.object({
 
 export const OverridesSchema = z.object({
   language: z.string().optional().describe("Locale override (e.g. 'it', 'en', 'de', 'fr', 'es')"),
+  client_lang: z.string().optional().describe("Client locale override used by the API response layer (e.g. 'it_IT', 'en_US')"),
   bollo_force_apply: z.boolean().optional().describe("Force apply virtual stamp (bollo virtuale) for Italian invoices"),
 }).strict();
 
@@ -181,10 +200,10 @@ export const InvoiceDataSchema = z.object({
   version: z.enum(["FPR12", "FPA12"]).describe("FPR12 for private/companies, FPA12 for Public Administration"),
   sdi_type: z.string().length(7).describe("SDI recipient code — 7 chars ('0000000' for private individuals without SDI code)"),
   customer_type: z.enum(["private", "company", "freelance", "pa"]).describe("Customer category"),
-  nature: z.string().optional().describe("VAT exemption nature code (e.g. 'N2.1', 'N3.1', 'N6.1') — required when VAT rate is 0%"),
-  ref_normative: z.string().optional().describe("Legal reference for VAT exemption"),
+  nature: optionalString().describe("VAT exemption nature code (e.g. 'N2.1', 'N3.1', 'N6.1') — required when VAT rate is 0%"),
+  ref_normative: optionalString().describe("Legal reference for VAT exemption"),
   vies: z.boolean().optional().describe("Whether EU VIES validation was performed for this customer"),
-  vat_kind: z.enum(["I", "D", "S"]).optional().describe("Italian VAT kind: I=Imponibile, D=Deducibile, S=Scissione"),
+  vat_kind: optionalEnum(["I", "D", "S"]).describe("Italian VAT kind: I=Imponibile, D=Deducibile, S=Scissione"),
   transmitter_data: TransmitterDataSchema,
   transfer_lender: TransferLenderSchema.describe("Supplier/seller details"),
   transferee_client: TransfereeClientSchema.describe("Customer/buyer details"),
