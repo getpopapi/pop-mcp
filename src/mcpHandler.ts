@@ -1,12 +1,14 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { Readable } from "node:stream";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { createPopServer } from "./mcpServer.js";
 import type { Environment } from "./types.js";
 
 // Node-http handler for the Vercel serverless function backing /mcp (see
-// api/mcp.ts + vercel.json). Uses the SDK's Node-native
-// StreamableHTTPServerTransport, since Vercel Node functions use
-// IncomingMessage/ServerResponse, not Fetch Request/Response.
+// api/mcp.ts + vercel.json). We intentionally bridge Node's
+// IncomingMessage/ServerResponse to the SDK's Web-standard transport
+// ourselves instead of using the SDK's Node wrapper, to avoid the request
+// hanging behind Vercel's serverless adapter.
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +28,72 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
 
 function unauthorized(res: ServerResponse, message: string): void {
   sendJson(res, 401, { error_code: "unauthorized_user", message });
+}
+
+function getRequestUrl(req: IncomingMessage): string {
+  const proto = (req.headers["x-forwarded-proto"] as string | undefined) ?? "https";
+  const host = req.headers.host ?? "localhost";
+  const path = req.url ?? "/";
+  return `${proto}://${host}${path}`;
+}
+
+function toHeaders(init: IncomingMessage["headers"]): Headers {
+  const headers = new Headers();
+
+  for (const [key, value] of Object.entries(init)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        headers.append(key, item);
+      }
+      continue;
+    }
+    headers.set(key, value);
+  }
+
+  return headers;
+}
+
+async function readRequestBody(req: IncomingMessage): Promise<Uint8Array | undefined> {
+  if (req.method === "GET" || req.method === "HEAD") {
+    return undefined;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+
+  if (chunks.length === 0) {
+    return undefined;
+  }
+
+  return Buffer.concat(chunks);
+}
+
+async function writeWebResponse(webResponse: Response, res: ServerResponse): Promise<void> {
+  const headerValues: Record<string, string> = {};
+  webResponse.headers.forEach((value, key) => {
+    headerValues[key] = value;
+  });
+
+  res.writeHead(webResponse.status, {
+    ...headerValues,
+    ...CORS_HEADERS,
+  });
+
+  if (!webResponse.body) {
+    res.end();
+    return;
+  }
+
+  const body = Readable.fromWeb(webResponse.body as globalThis.ReadableStream);
+  await new Promise<void>((resolve, reject) => {
+    body.on("error", reject);
+    res.on("error", reject);
+    res.on("finish", resolve);
+    body.pipe(res);
+  });
 }
 
 /**
@@ -48,9 +116,6 @@ export async function handleMcpHttpRequest(
   req: IncomingMessage,
   res: ServerResponse
 ): Promise<void> {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Expose-Headers", "Mcp-Session-Id");
-
   const authHeader = req.headers.authorization ?? "";
   const [scheme, token] = authHeader.split(" ");
   if (scheme?.toLowerCase() !== "bearer" || !token) {
@@ -65,23 +130,29 @@ export async function handleMcpHttpRequest(
     apiKey: token,
     environment: resolveEnvironment(process.env.POP_ENVIRONMENT),
   });
-  const transport = new StreamableHTTPServerTransport({
+  const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
     enableJsonResponse: true,
   });
 
-  res.on("close", () => {
-    transport.close();
-    server.close();
-  });
-
   try {
     await server.connect(transport);
-    await transport.handleRequest(req, res);
+    const body = await readRequestBody(req);
+    const webRequest = new Request(getRequestUrl(req), {
+      method: req.method,
+      headers: toHeaders(req.headers),
+      body,
+      duplex: body ? "half" : undefined,
+    });
+    const webResponse = await transport.handleRequest(webRequest);
+    await writeWebResponse(webResponse, res);
   } catch (error) {
     console.error("Error handling MCP request:", error instanceof Error ? error.message : error);
     if (!res.headersSent) {
       sendJson(res, 500, { error: "Internal server error" });
     }
+  } finally {
+    await transport.close();
+    await server.close();
   }
 }
