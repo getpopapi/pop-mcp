@@ -4,21 +4,21 @@
   "version": "1.1.0",
   "description": "MCP server for POP Cloud API — Italian e-invoicing (SdI/FatturaPA), Peppol, PDF invoice generation, and account onboarding",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/cli.js",
   "bin": {
-    "pop-mcp": "dist/index.js"
+    "pop-mcp": "dist/cli.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
+    "start": "node dist/cli.js",
+    "dev": "tsx watch src/cli.ts",
     "build": "tsc",
+    "check": "tsc -p tsconfig.vercel.json",
+    "bundle:api": "node scripts/bundle-vercel-api.mjs",
     "clean": "rm -rf dist",
-    "inspector": "npx @modelcontextprotocol/inspector dist/index.js",
-    "dev:worker": "wrangler dev",
-    "deploy:worker": "wrangler deploy"
+    "inspector": "npx @modelcontextprotocol/inspector dist/cli.js"
   },
   "engines": {
     "node": ">=18"
@@ -29,11 +29,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260713.1",
     "@types/node": "^22.10.0",
+    "esbuild": "^0.28.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.9.3",
-    "wrangler": "^4.110.0"
+    "typescript": "^5.9.3"
   },
   "keywords": [
     "mcp",

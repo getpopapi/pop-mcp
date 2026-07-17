@@ -4,3 +4,5 @@ dist/
 .env*
 *.log
 .wrangler/
+.vercel
+api/*.js

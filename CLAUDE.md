@@ -254,7 +254,7 @@ Build must pass cleanly (`tsc` zero errors) before any release.
   "mcpServers": {
     "pop": {
       "command": "node",
-      "args": ["/absolute/path/to/pop-mcp/dist/index.js"],
+      "args": ["/absolute/path/to/pop-mcp/dist/cli.js"],
       "env": { "POP_API_KEY": "your_license_key_here" }
     }
   }
@@ -279,15 +279,15 @@ Build must pass cleanly (`tsc` zero errors) before any release.
 - [ ] Add evaluation questions (see `/root/.claude/skills/mcp-builder/reference/evaluation.md`)
 - [ ] Update RapidAPI endpoint examples to v2 payload format
 
-## Remote HTTP server (2026-07-13)
+## Remote HTTP server (2026-07-13, pivoted to Vercel 2026-07-16)
 
-Added a second transport alongside stdio: a Cloudflare Worker (`src/worker.ts`) exposing the same
-13 tools over Streamable HTTP at `https://mcp.popapi.io/mcp`, for any MCP client (Claude, OpenAI
-Responses API, n8n), not just Claude Desktop. Per management's migration doc, this is
-**multi-tenant** — each caller supplies their own POP license key via
-`Authorization: Bearer <key>` instead of the server reading a single fixed `POP_API_KEY`.
+Added a second transport alongside stdio: an HTTP server exposing the same 13 tools over
+Streamable HTTP at `https://mcp.popapi.io/mcp`, for any MCP client (Claude, OpenAI Responses API,
+n8n), not just Claude Desktop. This is **multi-tenant** — each caller supplies their own POP
+license key via `Authorization: Bearer <key>` instead of the server reading a single fixed
+`POP_API_KEY`.
 
-Key implementation points, in case this needs picking back up:
+Key implementation points:
 
 - **Fixed a real concurrency bug during the migration, not just added HTTP**: `src/client.ts` used
   to cache one module-level axios instance with the key baked in from whichever request called
@@ -297,31 +297,32 @@ Key implementation points, in case this needs picking back up:
 - `ApiContext` is threaded through `registerInvoiceTools/StatusTools/AdvancedTools(server, ctx)`
   (need `ctx.apiKey`) and `registerOnboardingTools(server, ctx)` (only needs `ctx.environment` —
   onboarding auth is per-call `onboarding_token`, untouched by this change).
-- New `src/server.ts` — `createPopServer(ctx)` — is the single place both `src/index.ts` (stdio,
-  builds `ctx` once from `process.env` at startup, unchanged behavior) and `src/worker.ts` (HTTP,
-  builds `ctx` fresh per request from the `Authorization` header + Worker `env.POP_ENVIRONMENT`
-  binding) construct the `McpServer`.
-- Runs on **`WebStandardStreamableHTTPServerTransport`** (from
-  `@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js`, present since SDK 1.29.x, ships
-  under `pop-mcp`'s existing `^1.6.1` dependency range) — Fetch API `Request`/`Response` native, no
-  Node `http` shim, no Hono, no `McpAgent`/Durable Objects, no paid Workers plan required. One
-  `McpServer` per request (`sessionIdGenerator: undefined`), same stateless pattern already proven
-  on Vercel in the sibling `pop-openai-app` repo's `mcpHandler.ts`.
-- **Verified locally with `wrangler dev`** (2026-07-13): `tsc` clean, `tools/list` returns all 13
-  tools, missing/malformed `Authorization` → clean `401` with `error_code: "unauthorized_user"`
-  before any POP API call, valid Bearer → MCP `initialize`/`tools/list` succeed, `/health` → 200.
-  Two concurrent requests with different Bearer keys each got back their own distinct, isolated
-  response (no cross-talk) — as far as verifiable without a POP sandbox key or outbound internet
-  from this dev sandbox (DNS to `popapi.io` isn't reachable here; axios *did* get to the network
-  layer under `workerd` though, which is the actual Workers-compatibility question `wrangler dev`
-  was meant to answer, and it passed).
-- `wrangler.toml`: initially wrote the `mcp.popapi.io/mcp*` route as `custom_domain = true` — that
-  fails, Custom Domains don't support wildcards or paths, only whole hostnames. Fixed to a plain
-  `[[routes]]` with `zone_name = "popapi.io"`, which does support the `/mcp*` path pattern, but
-  requires `popapi.io` to already be an active zone on the Cloudflare account before `wrangler
-  deploy` will accept it.
-- **Not yet done**: live POP sandbox-key round trip, attaching the real `mcp.popapi.io` DNS/route
-  in the actual Cloudflare account (`sedwebagency@`), MCP Inspector against a deployed
-  `*.workers.dev` URL, and the pre-public checklist (rate limiting, monitoring/alerting hookup —
-  both dashboard-level, no code). See `README.md`'s new "Remote MCP (HTTP)" section for the
-  consumer-facing docs.
+- `src/server.ts` — `createPopServer(ctx)` — is the single place both `src/cli.ts` (stdio,
+  builds `ctx` once from `process.env` at startup, unchanged behavior) and `src/mcpHandler.ts`
+  (HTTP, builds `ctx` fresh per request from the `Authorization` header + `process.env
+  .POP_ENVIRONMENT`) construct the `McpServer`.
+- **Runs on Vercel**, not Cloudflare Workers. Originally built as a Cloudflare Worker
+  (`src/worker.ts` + `wrangler.toml`, using `WebStandardStreamableHTTPServerTransport`) and
+  verified locally via `wrangler dev` — but going live required `popapi.io`'s DNS to be an active
+  zone on Cloudflare, and it isn't (DNS lives on SiteGround/cPanel). Cloudflare's Custom Domains
+  also don't support wildcard paths, so the zone-based `[[routes]]` approach was a dead end without
+  a DNS migration. Dropped in favor of Vercel, which only needs one CNAME record — same pattern
+  already proven live in the sibling `pop-openai-app` repo. `src/worker.ts` and `wrangler.toml`
+  were deleted; the Cloudflare deps (`wrangler`, `@cloudflare/workers-types`) were removed from
+  `package.json`. Full reasoning: `mcp-and-openai-app-publishing-report.md`.
+- Now runs on the SDK's Node-native **`StreamableHTTPServerTransport`** (not the Fetch-based
+  `WebStandardStreamableHTTPServerTransport` the Worker used), since Vercel Node functions use
+  `IncomingMessage`/`ServerResponse`, not Fetch `Request`/`Response`. One `McpServer` per request
+  (`sessionIdGenerator: undefined`), same stateless pattern as `pop-openai-app`'s `mcpHandler.ts`.
+  Entry points: `api/mcp.ts` (delegates to `src/mcpHandler.ts`), `api/health.ts`, `vercel.json`
+  (rewrites `/mcp` → `/api/mcp`, `/` → `/api/health`).
+- **Verified locally (2026-07-16)** by running the compiled `dist/mcpHandler.js` against a plain
+  `node:http` server: missing/malformed `Authorization` → clean `401` with
+  `error_code: "unauthorized_user"` before any POP API call; valid Bearer → MCP `initialize`
+  succeeds. `npm run check` (new script, type-checks `src/` + `api/` together via
+  `tsconfig.vercel.json` without touching the npm-publish `tsconfig.json`/`dist` layout) and
+  `npm run build` both pass clean.
+- **Not yet done**: `vercel link`/deploy itself (needs account access), live POP sandbox-key round
+  trip, attaching the real `mcp.popapi.io` DNS/route, and the pre-public checklist (rate limiting,
+  monitoring — both dashboard-level, no code). See `README.md`'s "Remote MCP (HTTP)" section for
+  consumer-facing docs, and `mcp-and-openai-app-publishing-report.md` for the full step-by-step.
