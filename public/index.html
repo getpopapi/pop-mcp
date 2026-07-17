@@ -127,20 +127,29 @@
       .nav {
         display: flex;
         gap: 14px;
-        flex-wrap: wrap;
-        font-size: 0.95rem;
         align-items: center;
+        font-size: 0.95rem;
+        min-width: 0;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        min-width: 0;
       }
 
       .nav a {
         text-decoration: none;
         color: var(--muted);
+        white-space: nowrap;
       }
 
       .lang-switcher {
         display: inline-flex;
         gap: 8px;
         align-items: center;
+        flex-shrink: 0;
       }
 
       .lang-button {
@@ -220,7 +229,7 @@
 
       h1 {
         margin: 20px 0 12px;
-        font-size: clamp(2.2rem, 4.2vw, 40px);
+        font-size: clamp(1.9rem, 7vw, 40px);
         line-height: 0.98;
         letter-spacing: -0.04em;
       }
@@ -596,8 +605,25 @@
           align-items: flex-start;
         }
 
+        .topbar {
+          border-radius: var(--radius);
+        }
+
         .nav {
           width: 100%;
+          flex-wrap: nowrap;
+        }
+
+        .nav-links {
+          overflow-x: auto;
+          flex-wrap: nowrap;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 2px;
+        }
+
+        .nav-links::-webkit-scrollbar {
+          display: none;
         }
       }
 
@@ -613,12 +639,16 @@
           padding: 22px;
         }
 
-        h1 {
-          font-size: 2.45rem;
-        }
-
         .brand img {
           width: 82px;
+        }
+
+        .lang-button {
+          padding: 12px 16px;
+        }
+
+        .copy-button {
+          padding: 12px 14px;
         }
 
         .back-to-top {
@@ -626,6 +656,18 @@
           bottom: 14px;
           width: 48px;
           height: 48px;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .hero-main,
+        .hero-side,
+        .section {
+          padding: 16px;
+        }
+
+        .topbar {
+          padding: 14px 16px;
         }
       }
     </style>
@@ -643,11 +685,13 @@
           <span>MCP Server</span>
         </div>
         <nav class="nav" aria-label="Primary">
-          <a href="#connect" id="nav-connect">Connect</a>
-          <a href="#tools" id="nav-tools">Tools</a>
-          <a href="#test" id="nav-test">Quick Test</a>
-          <a href="#tester" id="nav-tester">Connection tester</a>
-          <a href="#docs" id="nav-docs">Docs</a>
+          <div class="nav-links">
+            <a href="#connect" id="nav-connect">Connect</a>
+            <a href="#tools" id="nav-tools">Tools</a>
+            <a href="#test" id="nav-test">Quick Test</a>
+            <a href="#tester" id="nav-tester">Connection tester</a>
+            <a href="#docs" id="nav-docs">Docs</a>
+          </div>
           <div class="lang-switcher" aria-label="Language switcher">
             <button class="lang-button active" id="lang-en" type="button" data-lang="en">EN</button>
             <button class="lang-button" id="lang-it" type="button" data-lang="it">IT</button>
