@@ -1,0 +1,43 @@
+# POP MCP Server
+
+POP MCP Server exposes POP document workflows and business integrations as a remote Model Context Protocol endpoint.
+
+## Endpoints
+
+- Landing page: https://mcp.popapi.io/
+- MCP endpoint: https://mcp.popapi.io/mcp
+- Health check: https://mcp.popapi.io/health
+
+## Authentication
+
+- Every MCP request must send: `Authorization: Bearer <license_key>`
+- The remote endpoint is multi-tenant and stateless.
+- The server does not use a shared server-side POP API key for client requests.
+
+## Protocol
+
+- Transport: Streamable HTTP MCP
+- POST requests should send:
+  - `Content-Type: application/json`
+  - `Accept: application/json, text/event-stream`
+
+## First live test
+
+Use JSON-RPC method `tools/list`:
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"tools/list"}
+```
+
+## Main tool groups
+
+- Invoice generation
+- Status and retrieval
+- Advanced document operations
+- Onboarding
+
+## References
+
+- POP platform: https://popapi.io/
+- GitHub repository: https://github.com/getpopapi/pop-mcp
+- MCP Inspector: https://github.com/modelcontextprotocol/inspector
