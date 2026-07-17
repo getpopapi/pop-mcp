@@ -314,6 +314,88 @@
         margin-top: 22px;
       }
 
+      .tester-form {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .field input,
+      .field select,
+      .response-panel {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--ink);
+        font: inherit;
+      }
+
+      .field input,
+      .field select {
+        padding: 14px 16px;
+      }
+
+      .response-panel {
+        min-height: 280px;
+        margin-top: 18px;
+        padding: 18px;
+        overflow: auto;
+        background: #111b1f;
+        color: #f8f4ed;
+        font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 0.88rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .tester-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        background: rgba(16, 32, 38, 0.08);
+      }
+
+      .status-pill[data-state="ok"] {
+        background: rgba(74, 172, 170, 0.16);
+        color: #175e5b;
+      }
+
+      .status-pill[data-state="error"] {
+        background: rgba(242, 107, 94, 0.16);
+        color: #9a3b31;
+      }
+
+      .status-pill[data-state="running"] {
+        background: rgba(242, 185, 94, 0.22);
+        color: #8d5f13;
+      }
+
       .tool {
         display: grid;
         gap: 6px;
@@ -436,7 +518,7 @@
       <section class="hero">
         <article class="card hero-main">
           <div class="eyebrow">Live Remote Endpoint</div>
-          <h1>POP MCP for invoices, Peppol, PDF, and onboarding.</h1>
+          <h1>POP MCP for document workflows and business integrations.</h1>
           <p class="lead">
             This endpoint exposes the POP Cloud API as a remote MCP server for Claude, OpenAI Responses API,
             n8n, MCP Inspector, and any client that speaks Streamable HTTP MCP.
@@ -558,6 +640,68 @@
         </aside>
       </section>
 
+      <section class="grid">
+        <article class="card section span-8" id="tester">
+          <h2>Connection tester</h2>
+          <p>
+            Run a safe client-side MCP connectivity check directly from this page. The key is used only for the
+            in-browser request and is never stored. Use this on a trusted machine only.
+          </p>
+
+          <form class="tester-form" id="tester-form">
+            <div class="field">
+              <label for="license-key">POP license key</label>
+              <input
+                id="license-key"
+                name="license-key"
+                type="password"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Paste your POP license key"
+              />
+            </div>
+
+            <div class="field">
+              <label for="tester-action">Action</label>
+              <select id="tester-action" name="tester-action">
+                <option value="initialize">Initialize</option>
+                <option value="tools/list">List tools</option>
+              </select>
+            </div>
+
+            <div class="hero-actions">
+              <button class="button" id="run-tester" type="submit">Run test</button>
+              <button class="ghost-button" id="copy-response" type="button">Copy response</button>
+            </div>
+          </form>
+
+          <div class="tester-meta">
+            <span class="status-pill" id="tester-status">Idle</span>
+            <span class="tiny">Requests are sent to <code>https://mcp.popapi.io/mcp</code> with the exact MCP headers required by the live endpoint.</span>
+          </div>
+
+          <pre class="response-panel" id="tester-output">Awaiting input.</pre>
+        </article>
+
+        <aside class="card section span-4">
+          <h2>Tester scope</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong>Initialize</strong>
+              <p>Confirms protocol negotiation and basic request handling.</p>
+            </div>
+            <div class="tool">
+              <strong>List tools</strong>
+              <p>Confirms authentication and the exposed MCP tool surface.</p>
+            </div>
+            <div class="tool">
+              <strong>No stored secrets</strong>
+              <p>No local storage, no cookies, no server-side proxy, and no arbitrary tool invocation from the landing page.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
       <section class="grid" id="tools">
         <article class="card section span-6">
           <h2>Primary tool groups</h2>
@@ -641,6 +785,8 @@
     </div>
 
     <script>
+      const endpoint = "https://mcp.popapi.io/mcp";
+
       for (const button of document.querySelectorAll("[data-copy-target]")) {
         button.addEventListener("click", async () => {
           const target = document.getElementById(button.dataset.copyTarget);
@@ -660,6 +806,128 @@
             setTimeout(() => {
               button.textContent = "Copy";
             }, 1400);
+          }
+        });
+      }
+
+      const testerForm = document.getElementById("tester-form");
+      const licenseKeyInput = document.getElementById("license-key");
+      const actionSelect = document.getElementById("tester-action");
+      const testerOutput = document.getElementById("tester-output");
+      const testerStatus = document.getElementById("tester-status");
+      const runTesterButton = document.getElementById("run-tester");
+      const copyResponseButton = document.getElementById("copy-response");
+
+      function setTesterStatus(label, state) {
+        testerStatus.textContent = label;
+        if (state) {
+          testerStatus.dataset.state = state;
+        } else {
+          delete testerStatus.dataset.state;
+        }
+      }
+
+      function buildPayload(action) {
+        if (action === "tools/list") {
+          return {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "tools/list"
+          };
+        }
+
+        return {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-03-26",
+            capabilities: {},
+            clientInfo: {
+              name: "pop-mcp-landing",
+              version: "1.0.0"
+            }
+          }
+        };
+      }
+
+      if (copyResponseButton) {
+        copyResponseButton.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(testerOutput.textContent ?? "");
+            copyResponseButton.textContent = "Copied";
+            setTimeout(() => {
+              copyResponseButton.textContent = "Copy response";
+            }, 1400);
+          } catch {
+            copyResponseButton.textContent = "Copy failed";
+            setTimeout(() => {
+              copyResponseButton.textContent = "Copy response";
+            }, 1400);
+          }
+        });
+      }
+
+      if (testerForm) {
+        testerForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const licenseKey = licenseKeyInput.value.trim();
+          const action = actionSelect.value;
+
+          if (!licenseKey) {
+            setTesterStatus("Missing key", "error");
+            testerOutput.textContent = "Enter a POP license key before running the test.";
+            return;
+          }
+
+          runTesterButton.disabled = true;
+          runTesterButton.textContent = "Running...";
+          setTesterStatus("Running", "running");
+          testerOutput.textContent = "Sending request...";
+
+          try {
+            const payload = buildPayload(action);
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Authorization": `Bearer ${licenseKey}`
+              },
+              body: JSON.stringify(payload)
+            });
+
+            const raw = await response.text();
+            let parsed;
+            try {
+              parsed = JSON.parse(raw);
+            } catch {
+              parsed = raw;
+            }
+
+            const summary = {
+              action,
+              status: response.status,
+              ok: response.ok,
+              headers: {
+                "content-type": response.headers.get("content-type"),
+                "mcp-session-id": response.headers.get("mcp-session-id")
+              },
+              body: parsed
+            };
+
+            testerOutput.textContent = JSON.stringify(summary, null, 2);
+            setTesterStatus(response.ok ? "Connected" : "Request failed", response.ok ? "ok" : "error");
+          } catch (error) {
+            testerOutput.textContent = JSON.stringify({
+              action,
+              error: error instanceof Error ? error.message : String(error)
+            }, null, 2);
+            setTesterStatus("Network error", "error");
+          } finally {
+            runTesterButton.disabled = false;
+            runTesterButton.textContent = "Run test";
           }
         });
       }
