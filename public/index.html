@@ -101,13 +101,31 @@
         color: var(--muted);
       }
 
-      .lang-select {
+      .lang-switcher {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .lang-button {
         border: 1px solid var(--line);
         border-radius: 999px;
         background: rgba(16, 32, 38, 0.06);
         color: var(--ink);
         font: inherit;
-        padding: 10px 12px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .lang-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .lang-button.active {
+        background: linear-gradient(135deg, var(--ink), #27424a);
+        color: white;
       }
 
       .hero {
@@ -564,10 +582,10 @@
           <a href="#test" id="nav-test">Quick Test</a>
           <a href="#tester" id="nav-tester">Connection tester</a>
           <a href="#docs" id="nav-docs">Docs</a>
-          <select class="lang-select" id="language-switcher" aria-label="Language">
-            <option value="en">English</option>
-            <option value="it">Italiano</option>
-          </select>
+          <div class="lang-switcher" aria-label="Language switcher">
+            <button class="lang-button active" id="lang-en" type="button" data-lang="en">EN</button>
+            <button class="lang-button" id="lang-it" type="button" data-lang="it">IT</button>
+          </div>
         </nav>
       </header>
 
@@ -844,8 +862,9 @@
 
     <script>
       const endpoint = "https://mcp.popapi.io/mcp";
-      const languageSwitcher = document.getElementById("language-switcher");
+      const languageButtons = document.querySelectorAll("[data-lang]");
       const backToTopButton = document.getElementById("back-to-top");
+      let currentLanguage = "en";
       let uiCopyLabels = { copy: "Copy", copied: "Copied", copyFailed: "Copy failed", copyCurl: "Copy curl", copyResponse: "Copy response" };
       let testerLabels = {
         idle: "Idle",
@@ -860,9 +879,19 @@
         runningButton: "Running..."
       };
 
+      function syncLanguageButtons(lang) {
+        for (const button of languageButtons) {
+          button.classList.toggle("active", button.dataset.lang === lang);
+        }
+      }
+
       async function applyTranslations(lang) {
-        const response = await fetch(`/i18n/${lang}.json`);
+        const response = await fetch(`/i18n/${lang}.json`, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Unable to load language file: ${lang}`);
+        }
         const messages = await response.json();
+        currentLanguage = lang;
 
         document.documentElement.lang = lang;
         document.title = messages.meta.title;
@@ -905,6 +934,8 @@
         if (runTesterButton && !runTesterButton.disabled) {
           runTesterButton.textContent = testerLabels.runTest;
         }
+
+        syncLanguageButtons(lang);
       }
 
       for (const button of document.querySelectorAll("[data-copy-target]")) {
@@ -992,10 +1023,15 @@
         });
       }
 
-      if (languageSwitcher) {
-        languageSwitcher.addEventListener("change", async () => {
-          const nextLang = languageSwitcher.value;
-          await applyTranslations(nextLang);
+      for (const button of languageButtons) {
+        button.addEventListener("click", async () => {
+          const nextLang = button.dataset.lang;
+          if (!nextLang || nextLang === currentLanguage) return;
+          try {
+            await applyTranslations(nextLang);
+          } catch (error) {
+            console.error(error);
+          }
         });
       }
 
@@ -1080,7 +1116,10 @@
         });
       }
 
-      applyTranslations("en");
+      applyTranslations("en").catch((error) => {
+        console.error(error);
+        syncLanguageButtons("en");
+      });
     </script>
   </body>
 </html>
