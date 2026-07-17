@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POP MCP Onboarding</title>
+    <meta
+      name="description"
+      content="Understand the POP MCP onboarding flow, the OTP step, the onboarding token, and the account setup tools."
+    />
+    <meta property="og:title" content="POP MCP Onboarding" />
+    <meta
+      property="og:description"
+      content="Understand the POP MCP onboarding flow, the OTP step, the onboarding token, and the account setup tools."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mcp.popapi.io/onboarding/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="POP MCP Onboarding" />
+    <meta
+      name="twitter:description"
+      content="Understand the POP MCP onboarding flow, the OTP step, the onboarding token, and the account setup tools."
+    />
+    <link rel="canonical" href="https://mcp.popapi.io/onboarding/" />
+    <link rel="stylesheet" href="/pillar.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "POP MCP Onboarding",
+        "url": "https://mcp.popapi.io/onboarding/",
+        "description": "Understand the POP MCP onboarding flow, the OTP step, the onboarding token, and the account setup tools.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "POP MCP Server",
+          "url": "https://mcp.popapi.io/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <img src="/assets/pop-logo-complete.svg" alt="POP" />
+          <span>MCP Server</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/mcp-server/">MCP Server</a>
+          <a href="/connect/">Connect</a>
+          <a href="/tools/">Tools</a>
+          <a href="/onboarding/">Onboarding</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero card">
+          <div class="eyebrow">Onboarding</div>
+          <h1>POP MCP onboarding flow</h1>
+          <p class="lead">
+            The onboarding sequence uses OTP verification and a short-lived onboarding token, separate from
+            the per-request license key used by the public MCP endpoint.
+          </p>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-8">
+            <h2>Flow overview</h2>
+            <ol>
+              <li>Call <code>pop_onboarding_request_otp</code> using the email tied to the account.</li>
+              <li>Verify the OTP with <code>pop_onboarding_verify_otp</code>.</li>
+              <li>Use the returned <code>onboarding_token</code> for the remaining onboarding calls.</li>
+              <li>Inspect status and account setup, then save the final configuration.</li>
+            </ol>
+
+            <h3>Important timing</h3>
+            <ul>
+              <li>OTP expires in 10 minutes.</li>
+              <li>The onboarding token expires 30 minutes after issue.</li>
+              <li>The token is required for the status and account-setup calls.</li>
+            </ul>
+          </article>
+
+          <aside class="card section span-4">
+            <h2>Onboarding tools</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong><code>pop_onboarding_request_otp</code></strong>
+                <p>Start the verification flow.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_verify_otp</code></strong>
+                <p>Exchange the OTP for an onboarding token.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_get_status</code></strong>
+                <p>Check the onboarding status.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_get_account_setup</code></strong>
+                <p>Read the current account setup.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_save_account_setup</code></strong>
+                <p>Persist the account setup changes.</p>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-12">
+            <h2>Operational note</h2>
+            <p>
+              The onboarding flow uses its own token and is separate from the normal MCP authentication header.
+              That separation keeps onboarding controlled without changing the public server contract.
+            </p>
+          </article>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>POP MCP Server</span>
+        <span><a href="/">Back to homepage</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -2,9 +2,16 @@
 
 POP MCP Server exposes POP document workflows and business integrations as a remote Model Context Protocol endpoint.
 
-## Endpoints
+## Public pages
 
 - Landing page: https://mcp.popapi.io/
+- MCP server overview: https://mcp.popapi.io/mcp-server/
+- Connect guide: https://mcp.popapi.io/connect/
+- Tools guide: https://mcp.popapi.io/tools/
+- Onboarding guide: https://mcp.popapi.io/onboarding/
+
+## Endpoints
+
 - MCP endpoint: https://mcp.popapi.io/mcp
 - Health check: https://mcp.popapi.io/health
 
@@ -31,10 +38,10 @@ Use JSON-RPC method `tools/list`:
 
 ## Main tool groups
 
-- Invoice generation
-- Status and retrieval
-- Advanced document operations
-- Onboarding
+- Invoice generation: `pop_create_sdi_invoice`, `pop_create_peppol_invoice`, `pop_create_pdf_invoice`
+- Status and retrieval: `pop_get_invoice_status`, `pop_get_peppol_document`, `pop_get_sdi_document`
+- Advanced document operations: `pop_verify_sdi_document`, `pop_preserve_document`
+- Onboarding: `pop_onboarding_request_otp`, `pop_onboarding_verify_otp`, `pop_onboarding_get_status`, `pop_onboarding_get_account_setup`, `pop_onboarding_save_account_setup`
 
 ## References
 

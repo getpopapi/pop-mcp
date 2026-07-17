@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POP MCP Tools</title>
+    <meta
+      name="description"
+      content="Explore the POP MCP tool surface: invoice generation, status and retrieval, advanced document operations, and onboarding."
+    />
+    <meta property="og:title" content="POP MCP Tools" />
+    <meta
+      property="og:description"
+      content="Explore the POP MCP tool surface: invoice generation, status and retrieval, advanced document operations, and onboarding."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mcp.popapi.io/tools/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="POP MCP Tools" />
+    <meta
+      name="twitter:description"
+      content="Explore the POP MCP tool surface: invoice generation, status and retrieval, advanced document operations, and onboarding."
+    />
+    <link rel="canonical" href="https://mcp.popapi.io/tools/" />
+    <link rel="stylesheet" href="/pillar.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "POP MCP Tools",
+        "url": "https://mcp.popapi.io/tools/",
+        "description": "Explore the POP MCP tool surface: invoice generation, status and retrieval, advanced document operations, and onboarding.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "POP MCP Server",
+          "url": "https://mcp.popapi.io/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <img src="/assets/pop-logo-complete.svg" alt="POP" />
+          <span>MCP Server</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/mcp-server/">MCP Server</a>
+          <a href="/connect/">Connect</a>
+          <a href="/tools/">Tools</a>
+          <a href="/onboarding/">Onboarding</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero card">
+          <div class="eyebrow">Tools</div>
+          <h1>POP MCP tool groups</h1>
+          <p class="lead">
+            The server exposes 13 tools across invoice generation, status and retrieval, advanced document
+            operations, and onboarding.
+          </p>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-6">
+            <h2>Invoice generation</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong><code>pop_create_sdi_invoice</code></strong>
+                <p>Create FatturaPA / SdI invoices and optionally submit them through POP.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_create_peppol_invoice</code></strong>
+                <p>Create UBL invoices for the Peppol network and submit when the plan allows it.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_create_pdf_invoice</code></strong>
+                <p>Create branded PDF invoices and optionally email them to recipients.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="card section span-6">
+            <h2>Status and retrieval</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong><code>pop_get_invoice_status</code></strong>
+                <p>Read SdI processing status and notifications for a submitted invoice.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_get_peppol_document</code></strong>
+                <p>Fetch a stored Peppol document by UUID.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_get_sdi_document</code></strong>
+                <p>Fetch the original FatturaPA XML document by UUID.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-6">
+            <h2>Advanced document operations</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong><code>pop_verify_sdi_document</code></strong>
+                <p>Validate a Base64-encoded SdI XML document before submission.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_preserve_document</code></strong>
+                <p>Archive an SdI document in long-term digital storage for retention workflows.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="card section span-6">
+            <h2>Onboarding</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong><code>pop_onboarding_request_otp</code></strong>
+                <p>Request a one-time password for the onboarding flow.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_verify_otp</code></strong>
+                <p>Verify the OTP and receive an onboarding token.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_get_status</code></strong>
+                <p>Inspect onboarding state with the token.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_get_account_setup</code></strong>
+                <p>Read the current account setup configuration.</p>
+              </div>
+              <div class="tool">
+                <strong><code>pop_onboarding_save_account_setup</code></strong>
+                <p>Persist the account setup after inspection or modification.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>POP MCP Server</span>
+        <span><a href="/">Back to homepage</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connect to POP MCP</title>
+    <meta
+      name="description"
+      content="Connect Claude, OpenAI, n8n, or MCP Inspector to the POP MCP endpoint with the required authentication headers."
+    />
+    <meta property="og:title" content="Connect to POP MCP" />
+    <meta
+      property="og:description"
+      content="Connect Claude, OpenAI, n8n, or MCP Inspector to the POP MCP endpoint with the required authentication headers."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mcp.popapi.io/connect/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Connect to POP MCP" />
+    <meta
+      name="twitter:description"
+      content="Connect Claude, OpenAI, n8n, or MCP Inspector to the POP MCP endpoint with the required authentication headers."
+    />
+    <link rel="canonical" href="https://mcp.popapi.io/connect/" />
+    <link rel="stylesheet" href="/pillar.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Connect to POP MCP",
+        "url": "https://mcp.popapi.io/connect/",
+        "description": "Connect Claude, OpenAI, n8n, or MCP Inspector to the POP MCP endpoint with the required authentication headers.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "POP MCP Server",
+          "url": "https://mcp.popapi.io/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <img src="/assets/pop-logo-complete.svg" alt="POP" />
+          <span>MCP Server</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/mcp-server/">MCP Server</a>
+          <a href="/connect/">Connect</a>
+          <a href="/tools/">Tools</a>
+          <a href="/onboarding/">Onboarding</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero card">
+          <div class="eyebrow">Connect</div>
+          <h1>How to connect a client to POP MCP</h1>
+          <p class="lead">
+            Use the remote endpoint at <code>https://mcp.popapi.io/mcp</code> and send your POP license key
+            on every request as a Bearer token.
+          </p>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-8">
+            <h2>Connection steps</h2>
+            <ol>
+              <li>Get your POP license key from your POP account.</li>
+              <li>Configure your client to talk to <code>/mcp</code>.</li>
+              <li>Add the required headers for JSON-RPC over Streamable HTTP MCP.</li>
+              <li>Run <code>tools/list</code> to verify the server and auth are working.</li>
+            </ol>
+
+            <h3>Required headers</h3>
+            <pre>Content-Type: application/json
+Accept: application/json, text/event-stream
+Authorization: Bearer &lt;license_key&gt;</pre>
+
+            <h3>Supported clients</h3>
+            <div class="pills">
+              <span class="pill">Claude Desktop</span>
+              <span class="pill">OpenAI clients</span>
+              <span class="pill">n8n</span>
+              <span class="pill">MCP Inspector</span>
+              <span class="pill">Custom integrations</span>
+            </div>
+          </article>
+
+          <aside class="card section span-4">
+            <h2>Common checks</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong>Wrong header</strong>
+                <p>If the Bearer token is missing, the request should fail before tool execution.</p>
+              </div>
+              <div class="tool">
+                <strong>Good smoke test</strong>
+                <p>Use the homepage tester or MCP Inspector before wiring the client into production automation.</p>
+              </div>
+              <div class="tool">
+                <strong>Related pages</strong>
+                <p><a href="/mcp-server/">MCP Server overview</a> and <a href="/tools/">tool groups</a>.</p>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>POP MCP Server</span>
+        <span><a href="/">Back to homepage</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

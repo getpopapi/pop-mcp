@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /mcp
+Disallow: /health
+
+Sitemap: https://mcp.popapi.io/sitemap.xml

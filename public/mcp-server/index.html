@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POP MCP Server Overview</title>
+    <meta
+      name="description"
+      content="Understand the POP MCP Server, its transport, authentication model, and public routes in one page."
+    />
+    <meta property="og:title" content="POP MCP Server Overview" />
+    <meta
+      property="og:description"
+      content="Understand the POP MCP Server, its transport, authentication model, and public routes in one page."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mcp.popapi.io/mcp-server/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="POP MCP Server Overview" />
+    <meta
+      name="twitter:description"
+      content="Understand the POP MCP Server, its transport, authentication model, and public routes in one page."
+    />
+    <link rel="canonical" href="https://mcp.popapi.io/mcp-server/" />
+    <link rel="stylesheet" href="/pillar.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "POP MCP Server Overview",
+        "url": "https://mcp.popapi.io/mcp-server/",
+        "description": "Understand the POP MCP Server, its transport, authentication model, and public routes in one page.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "POP MCP Server",
+          "url": "https://mcp.popapi.io/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a class="brand" href="/">
+          <img src="/assets/pop-logo-complete.svg" alt="POP" />
+          <span>MCP Server</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/mcp-server/">MCP Server</a>
+          <a href="/connect/">Connect</a>
+          <a href="/tools/">Tools</a>
+          <a href="/onboarding/">Onboarding</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero card">
+          <div class="eyebrow">MCP Server</div>
+          <h1>POP MCP Server overview</h1>
+          <p class="lead">
+            POP MCP exposes the POP Cloud API as a remote, stateless Model Context Protocol endpoint for
+            AI clients and developer tooling.
+          </p>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-8">
+            <h2>What it is</h2>
+            <p>
+              The server gives assistants and automation tools a direct way to use POP capabilities without
+              embedding business logic into the client. The public landing page is human-readable, while
+              <code>/mcp</code> is the protocol endpoint.
+            </p>
+
+            <h3>Core routes</h3>
+            <ul>
+              <li><code>/</code> for the marketing and documentation landing page</li>
+              <li><code>/mcp</code> for Streamable HTTP MCP traffic</li>
+              <li><code>/health</code> for a lightweight JSON health check</li>
+            </ul>
+
+            <h3>Transport and auth</h3>
+            <ul>
+              <li>Transport: Streamable HTTP MCP</li>
+              <li>Request headers: <code>Content-Type: application/json</code> and <code>Accept: application/json, text/event-stream</code></li>
+              <li>Authentication: <code>Authorization: Bearer &lt;license_key&gt;</code></li>
+              <li>Model: stateless and multi-tenant</li>
+            </ul>
+          </article>
+
+          <aside class="card section span-4">
+            <h2>At a glance</h2>
+            <div class="stack">
+              <div class="tool">
+                <strong>Best first check</strong>
+                <p>Call <code>tools/list</code> to confirm the server is reachable and the tool surface is exposed.</p>
+              </div>
+              <div class="tool">
+                <strong>Primary audience</strong>
+                <p>Developers, AI agents, and integration tools that need POP document workflows.</p>
+              </div>
+              <div class="tool">
+                <strong>Related pages</strong>
+                <p><a href="/connect/">Connect</a>, <a href="/tools/">Tools</a>, and <a href="/onboarding/">Onboarding</a>.</p>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="grid">
+          <article class="card section span-12">
+            <h2>Verification flow</h2>
+            <p>Use this sequence to confirm the live endpoint works:</p>
+            <ol>
+              <li>Open the homepage or this overview page.</li>
+              <li>Inspect the <code>/mcp</code> endpoint with your POP license key.</li>
+              <li>Run <code>tools/list</code> to verify the server is advertising the available tools.</li>
+              <li>Use the homepage tester or MCP Inspector to validate a real request end to end.</li>
+            </ol>
+            <pre>{"jsonrpc":"2.0","id":1,"method":"tools/list"}</pre>
+          </article>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>POP MCP Server</span>
+        <span><a href="/">Back to homepage</a></span>
+      </footer>
+    </div>
+  </body>
+</html>
