@@ -104,6 +104,9 @@
   "attrs": {
     "placeholder": {
       "license-key": "Paste your POP license key"
+    },
+    "ariaLabel": {
+      "nav-toggle": "Toggle navigation"
     }
   },
   "ui": {

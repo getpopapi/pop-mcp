@@ -99,13 +99,14 @@
       }
 
       .topbar {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
         padding: 18px 22px;
         border: 1px solid var(--line);
-        border-radius: 999px;
+        border-radius: var(--radius);
         background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(14px);
         box-shadow: 0 12px 32px rgba(16, 32, 38, 0.08);
@@ -150,6 +151,57 @@
         gap: 8px;
         align-items: center;
         flex-shrink: 0;
+      }
+
+      .nav-toggle {
+        display: none;
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(16, 32, 38, 0.06);
+        cursor: pointer;
+        position: relative;
+      }
+
+      .nav-toggle-icon,
+      .nav-toggle-icon::before,
+      .nav-toggle-icon::after {
+        content: "";
+        position: absolute;
+        left: 11px;
+        width: 22px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--ink);
+        transition: transform 160ms ease, opacity 160ms ease, top 160ms ease;
+      }
+
+      .nav-toggle-icon {
+        top: 21px;
+      }
+
+      .nav-toggle-icon::before {
+        top: -7px;
+      }
+
+      .nav-toggle-icon::after {
+        top: 7px;
+      }
+
+      .nav-toggle[aria-expanded="true"] .nav-toggle-icon {
+        background: transparent;
+      }
+
+      .nav-toggle[aria-expanded="true"] .nav-toggle-icon::before {
+        top: 0;
+        transform: rotate(45deg);
+      }
+
+      .nav-toggle[aria-expanded="true"] .nav-toggle-icon::after {
+        top: 0;
+        transform: rotate(-45deg);
       }
 
       .lang-button {
@@ -599,31 +651,47 @@
           grid-column: auto;
         }
 
-        .topbar,
         .footer {
           flex-direction: column;
           align-items: flex-start;
         }
 
-        .topbar {
-          border-radius: var(--radius);
-        }
-
-        .nav {
-          width: 100%;
-          flex-wrap: nowrap;
+        .nav-toggle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .nav-links {
-          overflow-x: auto;
-          flex-wrap: nowrap;
-          scrollbar-width: none;
-          -webkit-overflow-scrolling: touch;
-          padding-bottom: 2px;
+          position: absolute;
+          top: calc(100% + 10px);
+          left: 0;
+          right: 0;
+          z-index: 30;
+          display: none;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 4px;
+          padding: 12px;
+          border: 1px solid var(--line);
+          border-radius: var(--radius);
+          background: rgba(255, 255, 255, 0.98);
+          backdrop-filter: blur(14px);
+          box-shadow: var(--shadow);
         }
 
-        .nav-links::-webkit-scrollbar {
-          display: none;
+        .nav-links.open {
+          display: flex;
+        }
+
+        .nav-links a {
+          padding: 12px 14px;
+          border-radius: 14px;
+          white-space: normal;
+        }
+
+        .nav-links a:hover {
+          background: rgba(16, 32, 38, 0.06);
         }
       }
 
@@ -685,13 +753,16 @@
           <span>MCP Server</span>
         </div>
         <nav class="nav" aria-label="Primary">
-          <div class="nav-links">
+          <div class="nav-links" id="nav-links">
             <a href="#connect" id="nav-connect">Connect</a>
             <a href="#tools" id="nav-tools">Tools</a>
             <a href="#test" id="nav-test">Quick Test</a>
             <a href="#tester" id="nav-tester">Connection tester</a>
             <a href="#docs" id="nav-docs">Docs</a>
           </div>
+          <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">
+            <span class="nav-toggle-icon"></span>
+          </button>
           <div class="lang-switcher" aria-label="Language switcher">
             <button class="lang-button active" id="lang-en" type="button" data-lang="en">EN</button>
             <button class="lang-button" id="lang-it" type="button" data-lang="it">IT</button>
@@ -1067,6 +1138,11 @@
           if (node) node.setAttribute("placeholder", value);
         }
 
+        for (const [id, value] of Object.entries(messages.attrs.ariaLabel ?? {})) {
+          const node = document.getElementById(id);
+          if (node) node.setAttribute("aria-label", value);
+        }
+
         uiCopyLabels = messages.ui.copyLabels;
         testerLabels = messages.ui.tester;
 
@@ -1187,6 +1263,30 @@
           } catch (error) {
             console.error(error);
           }
+        });
+      }
+
+      const navToggle = document.getElementById("nav-toggle");
+      const navLinksPanel = document.getElementById("nav-links");
+
+      if (navToggle && navLinksPanel) {
+        navToggle.addEventListener("click", () => {
+          const isOpen = navLinksPanel.classList.toggle("open");
+          navToggle.setAttribute("aria-expanded", String(isOpen));
+        });
+
+        for (const link of navLinksPanel.querySelectorAll("a")) {
+          link.addEventListener("click", () => {
+            navLinksPanel.classList.remove("open");
+            navToggle.setAttribute("aria-expanded", "false");
+          });
+        }
+
+        document.addEventListener("click", (event) => {
+          if (!navLinksPanel.classList.contains("open")) return;
+          if (navToggle.contains(event.target) || navLinksPanel.contains(event.target)) return;
+          navLinksPanel.classList.remove("open");
+          navToggle.setAttribute("aria-expanded", "false");
         });
       }
 

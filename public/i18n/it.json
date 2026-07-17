@@ -104,6 +104,9 @@
   "attrs": {
     "placeholder": {
       "license-key": "Incolla la tua POP license key"
+    },
+    "ariaLabel": {
+      "nav-toggle": "Attiva/disattiva la navigazione"
     }
   },
   "ui": {
