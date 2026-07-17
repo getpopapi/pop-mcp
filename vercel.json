@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "outputDirectory": "public",
   "buildCommand": "echo 'no project-wide build needed - api/*.js is pre-bundled by scripts/bundle-vercel-api.mjs before vercel build runs'",
   "functions": {
     "api/**/*.js": {
