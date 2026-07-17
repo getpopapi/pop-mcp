@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POP MCP Server</title>
+    <meta
+      name="description"
+      content="POP MCP Server for Italian e-invoicing, Peppol, PDF invoice generation, and account onboarding."
+    />
+    <style>
+      :root {
+        --ink: #102026;
+        --muted: #5c6e72;
+        --accent: #f26b5e;
+        --teal: #4aacaa;
+        --panel: rgba(255, 255, 255, 0.9);
+        --line: rgba(16, 32, 38, 0.12);
+        --soft: #f7f4ef;
+        --shadow: 0 24px 80px rgba(16, 32, 38, 0.12);
+        --radius: 24px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(242, 107, 94, 0.18), transparent 32%),
+          radial-gradient(circle at top right, rgba(74, 172, 170, 0.22), transparent 28%),
+          linear-gradient(180deg, #fffdf9 0%, #f6f1ea 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(16, 32, 38, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16, 32, 38, 0.03) 1px, transparent 1px);
+        background-size: 36px 36px;
+        mask-image: radial-gradient(circle at center, black 52%, transparent 84%);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        width: min(1160px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 56px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 12px 32px rgba(16, 32, 38, 0.08);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .brand img {
+        width: 92px;
+        height: auto;
+      }
+
+      .nav {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 0.95rem;
+      }
+
+      .nav a {
+        text-decoration: none;
+        color: var(--muted);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+        gap: 24px;
+        margin-top: 26px;
+      }
+
+      .card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-main {
+        padding: 34px;
+      }
+
+      .hero-main::after {
+        content: "";
+        position: absolute;
+        right: -48px;
+        top: -48px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(242, 107, 94, 0.22), transparent 66%);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(74, 172, 170, 0.12);
+        color: #1e6461;
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 6px rgba(74, 172, 170, 0.14);
+      }
+
+      h1 {
+        margin: 20px 0 12px;
+        font-size: clamp(2.6rem, 5vw, 4.3rem);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      .lead {
+        max-width: 62ch;
+        margin: 0 0 28px;
+        color: var(--muted);
+        font-size: 1.06rem;
+        line-height: 1.65;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .button,
+      .ghost-button,
+      .copy-button {
+        border: 0;
+        border-radius: 999px;
+        font: inherit;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, var(--accent), #f38d63);
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 18px 38px rgba(242, 107, 94, 0.28);
+      }
+
+      .ghost-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 18px;
+        background: rgba(16, 32, 38, 0.06);
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .button:hover,
+      .ghost-button:hover,
+      .copy-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .hero-side {
+        padding: 28px;
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+
+      .status {
+        display: grid;
+        gap: 10px;
+        padding: 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(74, 172, 170, 0.12), rgba(255, 255, 255, 0.92));
+        border: 1px solid rgba(74, 172, 170, 0.18);
+      }
+
+      .status strong {
+        font-size: 1.28rem;
+      }
+
+      .tiny {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+
+      .data-block {
+        padding: 16px;
+        border-radius: 18px;
+        background: #122127;
+        color: #f6fbfb;
+      }
+
+      .data-block label {
+        display: block;
+        margin-bottom: 8px;
+        color: rgba(246, 251, 251, 0.72);
+        font-size: 0.84rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .data-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .data-row code {
+        flex: 1;
+        overflow-wrap: anywhere;
+        font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 0.96rem;
+      }
+
+      .copy-button {
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.12);
+        color: white;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .copy-button[data-copied="true"] {
+        background: rgba(74, 172, 170, 0.24);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .section {
+        padding: 28px;
+      }
+
+      .section h2 {
+        margin: 0 0 8px;
+        font-size: 1.7rem;
+        letter-spacing: -0.03em;
+      }
+
+      .section > p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .span-7 { grid-column: span 7; }
+      .span-5 { grid-column: span 5; }
+      .span-6 { grid-column: span 6; }
+      .span-4 { grid-column: span 4; }
+      .span-8 { grid-column: span 8; }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .tool {
+        display: grid;
+        gap: 6px;
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .tool strong {
+        font-size: 1rem;
+      }
+
+      .tool p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      pre {
+        margin: 20px 0 0;
+        padding: 18px;
+        overflow: auto;
+        border-radius: 20px;
+        background: #111b1f;
+        color: #f8f4ed;
+        font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      .pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+
+      .pill {
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: rgba(16, 32, 38, 0.06);
+        color: var(--ink);
+        font-weight: 600;
+        font-size: 0.92rem;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 26px;
+        padding: 18px 6px 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .footer a {
+        color: var(--ink);
+      }
+
+      @media (max-width: 960px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .span-7,
+        .span-5,
+        .span-6,
+        .span-4,
+        .span-8 {
+          grid-column: auto;
+        }
+
+        .topbar,
+        .footer {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(100% - 20px, 1160px);
+          padding-top: 18px;
+        }
+
+        .hero-main,
+        .hero-side,
+        .section {
+          padding: 22px;
+        }
+
+        h1 {
+          font-size: 2.45rem;
+        }
+
+        .brand img {
+          width: 82px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <img src="/assets/pop-logo-complete.svg" alt="POP" />
+          <span>MCP Server</span>
+        </div>
+        <nav class="nav" aria-label="Primary">
+          <a href="#connect">Connect</a>
+          <a href="#tools">Tools</a>
+          <a href="#test">Quick Test</a>
+          <a href="#docs">Docs</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <article class="card hero-main">
+          <div class="eyebrow">Live Remote Endpoint</div>
+          <h1>POP MCP for invoices, Peppol, PDF, and onboarding.</h1>
+          <p class="lead">
+            This endpoint exposes the POP Cloud API as a remote MCP server for Claude, OpenAI Responses API,
+            n8n, MCP Inspector, and any client that speaks Streamable HTTP MCP.
+          </p>
+          <div class="hero-actions">
+            <a class="button" href="#test">Run the first MCP call</a>
+            <a class="ghost-button" href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">View GitHub repo</a>
+          </div>
+        </article>
+
+        <aside class="card hero-side">
+          <div class="status">
+            <span class="eyebrow">Operational</span>
+            <strong>Landing for humans, protocol endpoint for machines.</strong>
+            <div class="tiny">Use <code>/mcp</code> for actual MCP traffic. The root page documents the endpoint and gives you a real protocol-level test.</div>
+          </div>
+
+          <div class="data-block">
+            <label>Endpoint</label>
+            <div class="data-row">
+              <code id="endpoint-text">https://mcp.popapi.io/mcp</code>
+              <button class="copy-button" type="button" data-copy-target="endpoint-text">Copy</button>
+            </div>
+          </div>
+
+          <div class="data-block">
+            <label>Authentication</label>
+            <div class="data-row">
+              <code id="auth-text">Authorization: Bearer &lt;license_key&gt;</code>
+              <button class="copy-button" type="button" data-copy-target="auth-text">Copy</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid">
+        <article class="card section span-7" id="connect">
+          <h2>How to connect</h2>
+          <p>
+            Point your MCP client to <code>https://mcp.popapi.io/mcp</code> and send your POP license key as
+            a Bearer token. The server is stateless and multi-tenant: every request carries its own credential.
+          </p>
+          <div class="pills">
+            <span class="pill">Claude remote MCP</span>
+            <span class="pill">OpenAI Responses API</span>
+            <span class="pill">n8n</span>
+            <span class="pill">MCP Inspector</span>
+            <span class="pill">Custom integrations</span>
+          </div>
+          <div class="stack">
+            <div class="tool">
+              <strong>Find your POP license key</strong>
+              <p>Open <a href="https://popapi.io/" target="_blank" rel="noreferrer">popapi.io</a> and go to <code>Account &gt; API</code>.</p>
+            </div>
+            <div class="tool">
+              <strong>Keep the header on every request</strong>
+              <p>The remote server does not read <code>POP_API_KEY</code> from its own environment. Authentication is per-request only.</p>
+            </div>
+            <div class="tool">
+              <strong>Use <code>/health</code> for monitoring</strong>
+              <p>The JSON health check is available separately so the root path can stay readable for humans.</p>
+            </div>
+          </div>
+        </article>
+
+        <aside class="card section span-5">
+          <h2>Route map</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong><code>/</code></strong>
+              <p>Human-facing landing page with connection details and a real MCP quick test.</p>
+            </div>
+            <div class="tool">
+              <strong><code>/mcp</code></strong>
+              <p>Machine-facing Streamable HTTP MCP endpoint.</p>
+            </div>
+            <div class="tool">
+              <strong><code>/health</code></strong>
+              <p>Technical JSON health check for uptime monitoring and probes.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid">
+        <article class="card section span-8" id="test">
+          <h2>Quick test</h2>
+          <p>
+            The first real protocol check is <code>tools/list</code>. It confirms request routing, auth handling,
+            MCP negotiation, and tool exposure in one call.
+          </p>
+          <pre id="curl-command">curl -X POST https://mcp.popapi.io/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer your_license_key_here" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</pre>
+          <div class="hero-actions" style="margin-top: 18px;">
+            <button class="button copy-button" type="button" data-copy-target="curl-command" style="background: linear-gradient(135deg, var(--teal), #237a77); box-shadow: 0 18px 38px rgba(74, 172, 170, 0.24);">Copy curl</button>
+            <a class="ghost-button" href="/health">Open /health</a>
+          </div>
+        </article>
+
+        <aside class="card section span-4">
+          <h2>What success looks like</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong><code>200 OK</code> on <code>initialize</code></strong>
+              <p>Confirms the transport layer and request lifecycle are working.</p>
+            </div>
+            <div class="tool">
+              <strong><code>200 OK</code> on <code>tools/list</code></strong>
+              <p>Confirms the server is advertising its MCP tool surface correctly.</p>
+            </div>
+            <div class="tool">
+              <strong><code>401 unauthorized_user</code> without Bearer token</strong>
+              <p>Confirms auth enforcement is behaving correctly on the live endpoint.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid" id="tools">
+        <article class="card section span-6">
+          <h2>Primary tool groups</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong>Invoice generation</strong>
+              <p><code>pop_create_sdi_invoice</code>, <code>pop_create_peppol_invoice</code>, <code>pop_create_pdf_invoice</code></p>
+            </div>
+            <div class="tool">
+              <strong>Status and retrieval</strong>
+              <p><code>pop_get_invoice_status</code>, <code>pop_get_peppol_document</code>, <code>pop_get_sdi_document</code></p>
+            </div>
+            <div class="tool">
+              <strong>Advanced document operations</strong>
+              <p><code>pop_verify_sdi_document</code>, <code>pop_preserve_document</code></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card section span-6">
+          <h2>Onboarding flow</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong>OTP authentication</strong>
+              <p><code>pop_onboarding_request_otp</code> and <code>pop_onboarding_verify_otp</code></p>
+            </div>
+            <div class="tool">
+              <strong>Account setup inspection</strong>
+              <p><code>pop_onboarding_get_status</code> and <code>pop_onboarding_get_account_setup</code></p>
+            </div>
+            <div class="tool">
+              <strong>Configuration write path</strong>
+              <p><code>pop_onboarding_save_account_setup</code> with explicit environment selection.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid" id="docs">
+        <article class="card section span-7">
+          <h2>Docs and references</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong>Repository</strong>
+              <p><a href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">github.com/getpopapi/pop-mcp</a></p>
+            </div>
+            <div class="tool">
+              <strong>POP platform</strong>
+              <p><a href="https://popapi.io" target="_blank" rel="noreferrer">popapi.io</a> for license keys, account setup, and product docs.</p>
+            </div>
+            <div class="tool">
+              <strong>MCP inspector</strong>
+              <p><a href="https://github.com/modelcontextprotocol/inspector" target="_blank" rel="noreferrer">github.com/modelcontextprotocol/inspector</a> for low-level endpoint debugging.</p>
+            </div>
+          </div>
+        </article>
+
+        <aside class="card section span-5">
+          <h2>Operational notes</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong>Environment</strong>
+              <p>Production by default, with optional request-level environment switches for supported tools.</p>
+            </div>
+            <div class="tool">
+              <strong>Protocol profile</strong>
+              <p>Streamable HTTP MCP. Keep <code>Accept: application/json, text/event-stream</code> on POST requests.</p>
+            </div>
+            <div class="tool">
+              <strong>Public root path</strong>
+              <p>Intentionally human-readable. The MCP protocol endpoint remains isolated on <code>/mcp</code>.</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <footer class="footer">
+        <span>POP MCP Server</span>
+        <span><a href="/health">Health JSON</a> · <a href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">GitHub</a></span>
+      </footer>
+    </div>
+
+    <script>
+      for (const button of document.querySelectorAll("[data-copy-target]")) {
+        button.addEventListener("click", async () => {
+          const target = document.getElementById(button.dataset.copyTarget);
+          if (!target) return;
+          const text = target.textContent ?? "";
+          try {
+            await navigator.clipboard.writeText(text);
+            button.dataset.copied = "true";
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.dataset.copied = "false";
+              button.textContent = previous;
+            }, 1400);
+          } catch {
+            button.textContent = "Copy failed";
+            setTimeout(() => {
+              button.textContent = "Copy";
+            }, 1400);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

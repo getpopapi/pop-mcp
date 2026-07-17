@@ -6,3 +6,6 @@ dist/
 .wrangler/
 .vercel
 api/*.js
+
+/.idea
+/.idea/*
