@@ -32,6 +32,9 @@ jobs:
       - name: Type check
         run: npm run check
 
+      - name: Bundle api/*.ts into self-contained functions
+        run: npm run bundle:api
+
       - name: Pull Vercel project settings
         run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:

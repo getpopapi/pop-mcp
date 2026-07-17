@@ -16,6 +16,7 @@
     "dev": "tsx watch src/cli.ts",
     "build": "tsc",
     "check": "tsc -p tsconfig.vercel.json",
+    "bundle:api": "node scripts/bundle-vercel-api.mjs",
     "clean": "rm -rf dist",
     "inspector": "npx @modelcontextprotocol/inspector dist/cli.js"
   },
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "esbuild": "^0.28.1",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3"
   },

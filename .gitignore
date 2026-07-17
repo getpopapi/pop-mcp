@@ -5,3 +5,4 @@ dist/
 *.log
 .wrangler/
 .vercel
+api/*.js

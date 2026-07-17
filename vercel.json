@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "echo 'no project-wide build needed - Vercel compiles api/* independently'",
+  "buildCommand": "echo 'no project-wide build needed - api/*.js is pre-bundled by scripts/bundle-vercel-api.mjs before vercel build runs'",
   "functions": {
-    "api/**/*.ts": {
+    "api/**/*.js": {
       "maxDuration": 30
     }
   },
