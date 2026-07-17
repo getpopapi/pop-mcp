@@ -297,7 +297,7 @@ Key implementation points:
 - `ApiContext` is threaded through `registerInvoiceTools/StatusTools/AdvancedTools(server, ctx)`
   (need `ctx.apiKey`) and `registerOnboardingTools(server, ctx)` (only needs `ctx.environment` —
   onboarding auth is per-call `onboarding_token`, untouched by this change).
-- `src/server.ts` — `createPopServer(ctx)` — is the single place both `src/cli.ts` (stdio,
+- `src/mcpServer.ts` — `createPopServer(ctx)` — is the single place both `src/cli.ts` (stdio,
   builds `ctx` once from `process.env` at startup, unchanged behavior) and `src/mcpHandler.ts`
   (HTTP, builds `ctx` fresh per request from the `Authorization` header + `process.env
   .POP_ENVIRONMENT`) construct the `McpServer`.
@@ -322,7 +322,40 @@ Key implementation points:
   succeeds. `npm run check` (new script, type-checks `src/` + `api/` together via
   `tsconfig.vercel.json` without touching the npm-publish `tsconfig.json`/`dist` layout) and
   `npm run build` both pass clean.
-- **Not yet done**: `vercel link`/deploy itself (needs account access), live POP sandbox-key round
-  trip, attaching the real `mcp.popapi.io` DNS/route, and the pre-public checklist (rate limiting,
-  monitoring — both dashboard-level, no code). See `README.md`'s "Remote MCP (HTTP)" section for
-  consumer-facing docs, and `mcp-and-openai-app-publishing-report.md` for the full step-by-step.
+- **Not yet done**: live POP sandbox-key round trip against the deployed endpoint, and the
+  pre-public checklist (rate limiting, monitoring — both dashboard-level, no code). See
+  `README.md`'s "Remote MCP (HTTP)" section for consumer-facing docs, and
+  `mcp-and-openai-app-publishing-report.md` for the full step-by-step.
+
+### Deploy crash saga — resolved (2026-07-17)
+
+Every request to `mcp.popapi.io` 500'd with `FUNCTION_INVOCATION_FAILED` /
+`Invalid export found in module ".../src/server.mjs". The default export must be a function or
+server.` for several deploys, surviving multiple attempted fixes (guarding `main()` in the old
+`index.ts`, renaming `index.ts` → `cli.ts`, `.vercelignore` excludes, scoping `vercel.json`'s
+`functions` glob to `api/**/*.ts`, then pre-bundling `api/*.ts` into self-contained `.js` with
+esbuild via `scripts/bundle-vercel-api.mjs`). None of it mattered because none of it was the actual
+bug.
+
+**Root cause**, found by reading the `vercel build` log line that every previous session had
+scrolled past: `✓ Build complete — Using src/server.ts as the root entrypoint.` Vercel has a
+zero-config feature ("Deploy Node servers with zero configuration") that auto-detects a file
+literally named `server.ts`/`server.js` at the project root or in `src/` and deploys **that** as
+the one and only Vercel Function, completely ignoring `api/`. This repo had `src/server.ts`
+(exporting `createPopServer`, not a `.listen()`-ing server or a default-exported handler) — Vercel
+grabbed it by filename convention, built it as the entrypoint, and it crashed on every path because
+it doesn't match the shape Vercel expects. This is the same class of bug as the earlier
+`index.ts` rename (also a bare filename convention collision, not a real code crash) — it just
+took this long to notice because the fix-du-jour always looked plausible and the error message
+never changed.
+
+**Fix**: renamed `src/server.ts` → `src/mcpServer.ts` (updated the two importers,
+`src/cli.ts` and `src/mcpHandler.ts`). Nothing named `server.*`/`index.*` remains anywhere in the
+tree, so Vercel's zero-config server/index auto-detection has nothing to match. The
+`scripts/bundle-vercel-api.mjs` esbuild pre-bundling step turned out to be unnecessary for this bug
+specifically, but is harmless and stays — it still makes the deployed function smaller and more
+predictable by construction.
+
+**Lesson for next time a Vercel deploy crashes mysteriously**: read the full `vercel build` output
+line by line before touching code — it explicitly names what it decided to treat as the entrypoint.
+Don't infer the cause from the runtime crash message alone.
