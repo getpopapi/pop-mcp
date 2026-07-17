@@ -170,24 +170,27 @@
       .nav-toggle-icon::after {
         content: "";
         position: absolute;
-        left: 11px;
-        width: 22px;
+        left: 50%;
+        top: 50%;
+        width: 20px;
         height: 2px;
         border-radius: 2px;
         background: var(--ink);
-        transition: transform 160ms ease, opacity 160ms ease, top 160ms ease;
+        transform: translate(-50%, -50%);
+        transform-origin: center;
+        transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
       }
 
       .nav-toggle-icon {
-        top: 21px;
+        top: 50%;
       }
 
       .nav-toggle-icon::before {
-        top: -7px;
+        transform: translate(-50%, -50%) translateY(-6px);
       }
 
       .nav-toggle-icon::after {
-        top: 7px;
+        transform: translate(-50%, -50%) translateY(6px);
       }
 
       .nav-toggle[aria-expanded="true"] .nav-toggle-icon {
@@ -195,13 +198,11 @@
       }
 
       .nav-toggle[aria-expanded="true"] .nav-toggle-icon::before {
-        top: 0;
-        transform: rotate(45deg);
+        transform: translate(-50%, -50%) rotate(45deg);
       }
 
       .nav-toggle[aria-expanded="true"] .nav-toggle-icon::after {
-        top: 0;
-        transform: rotate(-45deg);
+        transform: translate(-50%, -50%) rotate(-45deg);
       }
 
       .lang-button {
@@ -662,15 +663,21 @@
           justify-content: center;
         }
 
+        .nav {
+          width: 100%;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
         .nav-links {
-          position: absolute;
-          top: calc(100% + 10px);
-          left: 0;
-          right: 0;
+          order: 3;
+          flex-basis: 100%;
           z-index: 30;
+          display: none;
           flex-direction: column;
           align-items: stretch;
           gap: 4px;
+          margin-top: 10px;
           padding: 12px;
           border: 1px solid var(--line);
           border-radius: var(--radius);
