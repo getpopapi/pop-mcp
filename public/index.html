@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POP MCP Server</title>
+    <title id="page-title">POP MCP Server</title>
     <meta
+      id="page-description"
       name="description"
       content="POP MCP Server for Italian e-invoicing, Peppol, PDF invoice generation, and account onboarding."
     />
@@ -92,11 +93,21 @@
         gap: 14px;
         flex-wrap: wrap;
         font-size: 0.95rem;
+        align-items: center;
       }
 
       .nav a {
         text-decoration: none;
         color: var(--muted);
+      }
+
+      .lang-select {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(16, 32, 38, 0.06);
+        color: var(--ink);
+        font: inherit;
+        padding: 10px 12px;
       }
 
       .hero {
@@ -368,6 +379,7 @@
         flex-wrap: wrap;
         gap: 10px;
         align-items: center;
+        margin-top: 18px;
       }
 
       .status-pill {
@@ -457,6 +469,34 @@
         color: var(--ink);
       }
 
+      .back-to-top {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 20;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border: 0;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--ink), #27424a);
+        color: white;
+        box-shadow: 0 18px 36px rgba(16, 32, 38, 0.24);
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
       @media (max-width: 960px) {
         .hero,
         .grid {
@@ -475,6 +515,10 @@
         .footer {
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        .nav {
+          width: 100%;
         }
       }
 
@@ -497,6 +541,13 @@
         .brand img {
           width: 82px;
         }
+
+        .back-to-top {
+          right: 14px;
+          bottom: 14px;
+          width: 48px;
+          height: 48px;
+        }
       }
     </style>
   </head>
@@ -508,47 +559,52 @@
           <span>MCP Server</span>
         </div>
         <nav class="nav" aria-label="Primary">
-          <a href="#connect">Connect</a>
-          <a href="#tools">Tools</a>
-          <a href="#test">Quick Test</a>
-          <a href="#docs">Docs</a>
+          <a href="#connect" id="nav-connect">Connect</a>
+          <a href="#tools" id="nav-tools">Tools</a>
+          <a href="#test" id="nav-test">Quick Test</a>
+          <a href="#tester" id="nav-tester">Connection tester</a>
+          <a href="#docs" id="nav-docs">Docs</a>
+          <select class="lang-select" id="language-switcher" aria-label="Language">
+            <option value="en">English</option>
+            <option value="it">Italiano</option>
+          </select>
         </nav>
       </header>
 
       <section class="hero">
         <article class="card hero-main">
-          <div class="eyebrow">Live Remote Endpoint</div>
-          <h1>POP MCP for document workflows and business integrations.</h1>
-          <p class="lead">
+          <div class="eyebrow" id="hero-eyebrow">Live Remote Endpoint</div>
+          <h1 id="hero-title">POP MCP for document workflows and business integrations.</h1>
+          <p class="lead" id="hero-lead">
             This endpoint exposes the POP Cloud API as a remote MCP server for Claude, OpenAI Responses API,
             n8n, MCP Inspector, and any client that speaks Streamable HTTP MCP.
           </p>
           <div class="hero-actions">
-            <a class="button" href="#test">Run the first MCP call</a>
-            <a class="ghost-button" href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">View GitHub repo</a>
+            <a class="button" href="#test" id="hero-cta-primary">Run the first MCP call</a>
+            <a class="ghost-button" href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer" id="hero-cta-secondary">View GitHub repo</a>
           </div>
         </article>
 
         <aside class="card hero-side">
           <div class="status">
-            <span class="eyebrow">Operational</span>
-            <strong>Landing for humans, protocol endpoint for machines.</strong>
-            <div class="tiny">Use <code>/mcp</code> for actual MCP traffic. The root page documents the endpoint and gives you a real protocol-level test.</div>
+            <span class="eyebrow" id="status-eyebrow">Operational</span>
+            <strong id="status-title">Landing for humans, protocol endpoint for machines.</strong>
+            <div class="tiny" id="status-body">Use <code>/mcp</code> for actual MCP traffic. The root page documents the endpoint and gives you a real protocol-level test.</div>
           </div>
 
           <div class="data-block">
-            <label>Endpoint</label>
+            <label id="endpoint-label">Endpoint</label>
             <div class="data-row">
               <code id="endpoint-text">https://mcp.popapi.io/mcp</code>
-              <button class="copy-button" type="button" data-copy-target="endpoint-text">Copy</button>
+              <button class="copy-button" type="button" data-copy-target="endpoint-text" data-label-key="copy">Copy</button>
             </div>
           </div>
 
           <div class="data-block">
-            <label>Authentication</label>
+            <label id="auth-label">Authentication</label>
             <div class="data-row">
               <code id="auth-text">Authorization: Bearer &lt;license_key&gt;</code>
-              <button class="copy-button" type="button" data-copy-target="auth-text">Copy</button>
+              <button class="copy-button" type="button" data-copy-target="auth-text" data-label-key="copy">Copy</button>
             </div>
           </div>
         </aside>
@@ -556,48 +612,48 @@
 
       <section class="grid">
         <article class="card section span-7" id="connect">
-          <h2>How to connect</h2>
-          <p>
+          <h2 id="connect-title">How to connect</h2>
+          <p id="connect-body">
             Point your MCP client to <code>https://mcp.popapi.io/mcp</code> and send your POP license key as
             a Bearer token. The server is stateless and multi-tenant: every request carries its own credential.
           </p>
           <div class="pills">
-            <span class="pill">Claude remote MCP</span>
-            <span class="pill">OpenAI Responses API</span>
-            <span class="pill">n8n</span>
-            <span class="pill">MCP Inspector</span>
-            <span class="pill">Custom integrations</span>
+            <span class="pill" id="connect-pill-1">Claude remote MCP</span>
+            <span class="pill" id="connect-pill-2">OpenAI Responses API</span>
+            <span class="pill" id="connect-pill-3">n8n</span>
+            <span class="pill" id="connect-pill-4">MCP Inspector</span>
+            <span class="pill" id="connect-pill-5">Custom integrations</span>
           </div>
           <div class="stack">
             <div class="tool">
-              <strong>Find your POP license key</strong>
-              <p>Open <a href="https://popapi.io/" target="_blank" rel="noreferrer">popapi.io</a> and go to <code>Account &gt; API</code>.</p>
+              <strong id="connect-tool-1-title">Find your POP license key</strong>
+              <p id="connect-tool-1-body">Open <a href="https://popapi.io/" target="_blank" rel="noreferrer">popapi.io</a> and go to <code>Account &gt; API</code>.</p>
             </div>
             <div class="tool">
-              <strong>Keep the header on every request</strong>
-              <p>The remote server does not read <code>POP_API_KEY</code> from its own environment. Authentication is per-request only.</p>
+              <strong id="connect-tool-2-title">Keep the header on every request</strong>
+              <p id="connect-tool-2-body">The remote server does not read <code>POP_API_KEY</code> from its own environment. Authentication is per-request only.</p>
             </div>
             <div class="tool">
-              <strong>Use <code>/health</code> for monitoring</strong>
-              <p>The JSON health check is available separately so the root path can stay readable for humans.</p>
+              <strong id="connect-tool-3-title">Use <code>/health</code> for monitoring</strong>
+              <p id="connect-tool-3-body">The JSON health check is available separately so the root path can stay readable for humans.</p>
             </div>
           </div>
         </article>
 
         <aside class="card section span-5">
-          <h2>Route map</h2>
+          <h2 id="route-title">Route map</h2>
           <div class="stack">
             <div class="tool">
               <strong><code>/</code></strong>
-              <p>Human-facing landing page with connection details and a real MCP quick test.</p>
+              <p id="route-root-body">Human-facing landing page with connection details and a real MCP quick test.</p>
             </div>
             <div class="tool">
               <strong><code>/mcp</code></strong>
-              <p>Machine-facing Streamable HTTP MCP endpoint.</p>
+              <p id="route-mcp-body">Machine-facing Streamable HTTP MCP endpoint.</p>
             </div>
             <div class="tool">
               <strong><code>/health</code></strong>
-              <p>Technical JSON health check for uptime monitoring and probes.</p>
+              <p id="route-health-body">Technical JSON health check for uptime monitoring and probes.</p>
             </div>
           </div>
         </aside>
@@ -605,8 +661,8 @@
 
       <section class="grid">
         <article class="card section span-8" id="test">
-          <h2>Quick test</h2>
-          <p>
+          <h2 id="quick-title">Quick test</h2>
+          <p id="quick-body">
             The first real protocol check is <code>tools/list</code>. It confirms request routing, auth handling,
             MCP negotiation, and tool exposure in one call.
           </p>
@@ -616,25 +672,25 @@
   -H "Authorization: Bearer your_license_key_here" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</pre>
           <div class="hero-actions" style="margin-top: 18px;">
-            <button class="button copy-button" type="button" data-copy-target="curl-command" style="background: linear-gradient(135deg, var(--teal), #237a77); box-shadow: 0 18px 38px rgba(74, 172, 170, 0.24);">Copy curl</button>
-            <a class="ghost-button" href="/health">Open /health</a>
+            <button class="button copy-button" type="button" data-copy-target="curl-command" data-label-key="copyCurl" style="background: linear-gradient(135deg, var(--teal), #237a77); box-shadow: 0 18px 38px rgba(74, 172, 170, 0.24);">Copy curl</button>
+            <a class="ghost-button" href="/health" id="quick-health-link">Open /health</a>
           </div>
         </article>
 
         <aside class="card section span-4">
-          <h2>What success looks like</h2>
+          <h2 id="success-title">What success looks like</h2>
           <div class="stack">
             <div class="tool">
               <strong><code>200 OK</code> on <code>initialize</code></strong>
-              <p>Confirms the transport layer and request lifecycle are working.</p>
+              <p id="success-item-1">Confirms the transport layer and request lifecycle are working.</p>
             </div>
             <div class="tool">
               <strong><code>200 OK</code> on <code>tools/list</code></strong>
-              <p>Confirms the server is advertising its MCP tool surface correctly.</p>
+              <p id="success-item-2">Confirms the server is advertising its MCP tool surface correctly.</p>
             </div>
             <div class="tool">
               <strong><code>401 unauthorized_user</code> without Bearer token</strong>
-              <p>Confirms auth enforcement is behaving correctly on the live endpoint.</p>
+              <p id="success-item-3">Confirms auth enforcement is behaving correctly on the live endpoint.</p>
             </div>
           </div>
         </aside>
@@ -642,15 +698,20 @@
 
       <section class="grid">
         <article class="card section span-8" id="tester">
-          <h2>Connection tester</h2>
-          <p>
+          <h2 id="tester-title">Connection tester</h2>
+          <p id="tester-body">
             Run a safe client-side MCP connectivity check directly from this page. The key is used only for the
             in-browser request and is never stored. Use this on a trusted machine only.
           </p>
 
+          <div class="tester-meta">
+            <span class="status-pill" id="tester-status">Idle</span>
+            <span class="tiny" id="tester-meta-body">Requests are sent to <code>https://mcp.popapi.io/mcp</code> with the exact MCP headers required by the live endpoint.</span>
+          </div>
+
           <form class="tester-form" id="tester-form">
             <div class="field">
-              <label for="license-key">POP license key</label>
+              <label for="license-key" id="tester-key-label">POP license key</label>
               <input
                 id="license-key"
                 name="license-key"
@@ -662,10 +723,10 @@
             </div>
 
             <div class="field">
-              <label for="tester-action">Action</label>
+              <label for="tester-action" id="tester-action-label">Action</label>
               <select id="tester-action" name="tester-action">
-                <option value="initialize">Initialize</option>
-                <option value="tools/list">List tools</option>
+                <option value="initialize" id="tester-option-initialize">Initialize</option>
+                <option value="tools/list" id="tester-option-tools">List tools</option>
               </select>
             </div>
 
@@ -675,28 +736,23 @@
             </div>
           </form>
 
-          <div class="tester-meta">
-            <span class="status-pill" id="tester-status">Idle</span>
-            <span class="tiny">Requests are sent to <code>https://mcp.popapi.io/mcp</code> with the exact MCP headers required by the live endpoint.</span>
-          </div>
-
           <pre class="response-panel" id="tester-output">Awaiting input.</pre>
         </article>
 
         <aside class="card section span-4">
-          <h2>Tester scope</h2>
+          <h2 id="tester-scope-title">Tester scope</h2>
           <div class="stack">
             <div class="tool">
-              <strong>Initialize</strong>
-              <p>Confirms protocol negotiation and basic request handling.</p>
+              <strong id="tester-scope-1-title">Initialize</strong>
+              <p id="tester-scope-1-body">Confirms protocol negotiation and basic request handling.</p>
             </div>
             <div class="tool">
-              <strong>List tools</strong>
-              <p>Confirms authentication and the exposed MCP tool surface.</p>
+              <strong id="tester-scope-2-title">List tools</strong>
+              <p id="tester-scope-2-body">Confirms authentication and the exposed MCP tool surface.</p>
             </div>
             <div class="tool">
-              <strong>No stored secrets</strong>
-              <p>No local storage, no cookies, no server-side proxy, and no arbitrary tool invocation from the landing page.</p>
+              <strong id="tester-scope-3-title">No stored secrets</strong>
+              <p id="tester-scope-3-body">No local storage, no cookies, no server-side proxy, and no arbitrary tool invocation from the landing page.</p>
             </div>
           </div>
         </aside>
@@ -704,37 +760,37 @@
 
       <section class="grid" id="tools">
         <article class="card section span-6">
-          <h2>Primary tool groups</h2>
+          <h2 id="tools-title">Primary tool groups</h2>
           <div class="stack">
             <div class="tool">
-              <strong>Invoice generation</strong>
+              <strong id="tools-group-1-title">Invoice generation</strong>
               <p><code>pop_create_sdi_invoice</code>, <code>pop_create_peppol_invoice</code>, <code>pop_create_pdf_invoice</code></p>
             </div>
             <div class="tool">
-              <strong>Status and retrieval</strong>
+              <strong id="tools-group-2-title">Status and retrieval</strong>
               <p><code>pop_get_invoice_status</code>, <code>pop_get_peppol_document</code>, <code>pop_get_sdi_document</code></p>
             </div>
             <div class="tool">
-              <strong>Advanced document operations</strong>
+              <strong id="tools-group-3-title">Advanced document operations</strong>
               <p><code>pop_verify_sdi_document</code>, <code>pop_preserve_document</code></p>
             </div>
           </div>
         </article>
 
         <article class="card section span-6">
-          <h2>Onboarding flow</h2>
+          <h2 id="onboarding-title">Onboarding flow</h2>
           <div class="stack">
             <div class="tool">
-              <strong>OTP authentication</strong>
+              <strong id="onboarding-item-1-title">OTP authentication</strong>
               <p><code>pop_onboarding_request_otp</code> and <code>pop_onboarding_verify_otp</code></p>
             </div>
             <div class="tool">
-              <strong>Account setup inspection</strong>
+              <strong id="onboarding-item-2-title">Account setup inspection</strong>
               <p><code>pop_onboarding_get_status</code> and <code>pop_onboarding_get_account_setup</code></p>
             </div>
             <div class="tool">
-              <strong>Configuration write path</strong>
-              <p><code>pop_onboarding_save_account_setup</code> with explicit environment selection.</p>
+              <strong id="onboarding-item-3-title">Configuration write path</strong>
+              <p id="onboarding-item-3-body"><code>pop_onboarding_save_account_setup</code> with explicit environment selection.</p>
             </div>
           </div>
         </article>
@@ -742,50 +798,114 @@
 
       <section class="grid" id="docs">
         <article class="card section span-7">
-          <h2>Docs and references</h2>
+          <h2 id="docs-title">Docs and references</h2>
           <div class="stack">
             <div class="tool">
-              <strong>Repository</strong>
+              <strong id="docs-item-1-title">Repository</strong>
               <p><a href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">github.com/getpopapi/pop-mcp</a></p>
             </div>
             <div class="tool">
-              <strong>POP platform</strong>
-              <p><a href="https://popapi.io" target="_blank" rel="noreferrer">popapi.io</a> for license keys, account setup, and product docs.</p>
+              <strong id="docs-item-2-title">POP platform</strong>
+              <p id="docs-item-2-body"><a href="https://popapi.io" target="_blank" rel="noreferrer">popapi.io</a> for license keys, account setup, and product docs.</p>
             </div>
             <div class="tool">
-              <strong>MCP inspector</strong>
-              <p><a href="https://github.com/modelcontextprotocol/inspector" target="_blank" rel="noreferrer">github.com/modelcontextprotocol/inspector</a> for low-level endpoint debugging.</p>
+              <strong id="docs-item-3-title">MCP inspector</strong>
+              <p id="docs-item-3-body"><a href="https://github.com/modelcontextprotocol/inspector" target="_blank" rel="noreferrer">github.com/modelcontextprotocol/inspector</a> for low-level endpoint debugging.</p>
             </div>
           </div>
         </article>
 
         <aside class="card section span-5">
-          <h2>Operational notes</h2>
+          <h2 id="ops-title">Operational notes</h2>
           <div class="stack">
             <div class="tool">
-              <strong>Environment</strong>
-              <p>Production by default, with optional request-level environment switches for supported tools.</p>
+              <strong id="ops-item-1-title">Environment</strong>
+              <p id="ops-item-1-body">Production by default, with optional request-level environment switches for supported tools.</p>
             </div>
             <div class="tool">
-              <strong>Protocol profile</strong>
-              <p>Streamable HTTP MCP. Keep <code>Accept: application/json, text/event-stream</code> on POST requests.</p>
+              <strong id="ops-item-2-title">Protocol profile</strong>
+              <p id="ops-item-2-body">Streamable HTTP MCP. Keep <code>Accept: application/json, text/event-stream</code> on POST requests.</p>
             </div>
             <div class="tool">
-              <strong>Public root path</strong>
-              <p>Intentionally human-readable. The MCP protocol endpoint remains isolated on <code>/mcp</code>.</p>
+              <strong id="ops-item-3-title">Public root path</strong>
+              <p id="ops-item-3-body">Intentionally human-readable. The MCP protocol endpoint remains isolated on <code>/mcp</code>.</p>
             </div>
           </div>
         </aside>
       </section>
 
       <footer class="footer">
-        <span>POP MCP Server</span>
-        <span><a href="/health">Health JSON</a> · <a href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">GitHub</a></span>
+        <span id="footer-brand">POP MCP Server</span>
+        <span><a href="/health" id="footer-health">Health JSON</a> · <a href="https://github.com/getpopapi/pop-mcp" target="_blank" rel="noreferrer">GitHub</a></span>
       </footer>
     </div>
 
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="Back to top">↑</button>
+
     <script>
       const endpoint = "https://mcp.popapi.io/mcp";
+      const languageSwitcher = document.getElementById("language-switcher");
+      const backToTopButton = document.getElementById("back-to-top");
+      let uiCopyLabels = { copy: "Copy", copied: "Copied", copyFailed: "Copy failed", copyCurl: "Copy curl", copyResponse: "Copy response" };
+      let testerLabels = {
+        idle: "Idle",
+        missingKey: "Missing key",
+        missingKeyBody: "Enter a POP license key before running the test.",
+        running: "Running",
+        sending: "Sending request...",
+        connected: "Connected",
+        requestFailed: "Request failed",
+        networkError: "Network error",
+        runTest: "Run test",
+        runningButton: "Running..."
+      };
+
+      async function applyTranslations(lang) {
+        const response = await fetch(`/i18n/${lang}.json`);
+        const messages = await response.json();
+
+        document.documentElement.lang = lang;
+        document.title = messages.meta.title;
+        document.getElementById("page-description").setAttribute("content", messages.meta.description);
+
+        for (const [id, value] of Object.entries(messages.text)) {
+          const node = document.getElementById(id);
+          if (node) node.textContent = value;
+        }
+
+        for (const [id, value] of Object.entries(messages.html)) {
+          const node = document.getElementById(id);
+          if (node) node.innerHTML = value;
+        }
+
+        for (const [id, value] of Object.entries(messages.attrs.placeholder ?? {})) {
+          const node = document.getElementById(id);
+          if (node) node.setAttribute("placeholder", value);
+        }
+
+        uiCopyLabels = messages.ui.copyLabels;
+        testerLabels = messages.ui.tester;
+
+        for (const button of document.querySelectorAll("[data-label-key]")) {
+          const key = button.dataset.labelKey;
+          if (key && uiCopyLabels[key]) {
+            button.textContent = uiCopyLabels[key];
+          }
+        }
+
+        if (!testerStatus.dataset.state || testerStatus.dataset.state === "idle") {
+          setTesterStatus(testerLabels.idle);
+        }
+        if (testerOutput.textContent === "Awaiting input." || testerOutput.textContent === "In attesa di input.") {
+          testerOutput.textContent = messages.ui.tester.awaiting;
+        }
+        if (copyResponseButton && !copyResponseButton.dataset.transient) {
+          copyResponseButton.textContent = uiCopyLabels.copyResponse;
+        }
+        if (runTesterButton && !runTesterButton.disabled) {
+          runTesterButton.textContent = testerLabels.runTest;
+        }
+      }
 
       for (const button of document.querySelectorAll("[data-copy-target]")) {
         button.addEventListener("click", async () => {
@@ -796,15 +916,15 @@
             await navigator.clipboard.writeText(text);
             button.dataset.copied = "true";
             const previous = button.textContent;
-            button.textContent = "Copied";
+            button.textContent = uiCopyLabels.copied;
             setTimeout(() => {
               button.dataset.copied = "false";
               button.textContent = previous;
             }, 1400);
           } catch {
-            button.textContent = "Copy failed";
+            button.textContent = uiCopyLabels.copyFailed;
             setTimeout(() => {
-              button.textContent = "Copy";
+              button.textContent = uiCopyLabels[button.dataset.labelKey] ?? uiCopyLabels.copy;
             }, 1400);
           }
         });
@@ -855,17 +975,45 @@
         copyResponseButton.addEventListener("click", async () => {
           try {
             await navigator.clipboard.writeText(testerOutput.textContent ?? "");
-            copyResponseButton.textContent = "Copied";
+            copyResponseButton.dataset.transient = "true";
+            copyResponseButton.textContent = uiCopyLabels.copied;
             setTimeout(() => {
-              copyResponseButton.textContent = "Copy response";
+              delete copyResponseButton.dataset.transient;
+              copyResponseButton.textContent = uiCopyLabels.copyResponse;
             }, 1400);
           } catch {
-            copyResponseButton.textContent = "Copy failed";
+            copyResponseButton.dataset.transient = "true";
+            copyResponseButton.textContent = uiCopyLabels.copyFailed;
             setTimeout(() => {
-              copyResponseButton.textContent = "Copy response";
+              delete copyResponseButton.dataset.transient;
+              copyResponseButton.textContent = uiCopyLabels.copyResponse;
             }, 1400);
           }
         });
+      }
+
+      if (languageSwitcher) {
+        languageSwitcher.addEventListener("change", async () => {
+          const nextLang = languageSwitcher.value;
+          await applyTranslations(nextLang);
+        });
+      }
+
+      if (backToTopButton) {
+        backToTopButton.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        const syncBackToTop = () => {
+          if (window.scrollY > 520) {
+            backToTopButton.classList.add("visible");
+          } else {
+            backToTopButton.classList.remove("visible");
+          }
+        };
+
+        window.addEventListener("scroll", syncBackToTop, { passive: true });
+        syncBackToTop();
       }
 
       if (testerForm) {
@@ -876,15 +1024,15 @@
           const action = actionSelect.value;
 
           if (!licenseKey) {
-            setTesterStatus("Missing key", "error");
-            testerOutput.textContent = "Enter a POP license key before running the test.";
+            setTesterStatus(testerLabels.missingKey, "error");
+            testerOutput.textContent = testerLabels.missingKeyBody;
             return;
           }
 
           runTesterButton.disabled = true;
-          runTesterButton.textContent = "Running...";
-          setTesterStatus("Running", "running");
-          testerOutput.textContent = "Sending request...";
+          runTesterButton.textContent = testerLabels.runningButton;
+          setTesterStatus(testerLabels.running, "running");
+          testerOutput.textContent = testerLabels.sending;
 
           try {
             const payload = buildPayload(action);
@@ -918,19 +1066,21 @@
             };
 
             testerOutput.textContent = JSON.stringify(summary, null, 2);
-            setTesterStatus(response.ok ? "Connected" : "Request failed", response.ok ? "ok" : "error");
+            setTesterStatus(response.ok ? testerLabels.connected : testerLabels.requestFailed, response.ok ? "ok" : "error");
           } catch (error) {
             testerOutput.textContent = JSON.stringify({
               action,
               error: error instanceof Error ? error.message : String(error)
             }, null, 2);
-            setTesterStatus("Network error", "error");
+            setTesterStatus(testerLabels.networkError, "error");
           } finally {
             runTesterButton.disabled = false;
-            runTesterButton.textContent = "Run test";
+            runTesterButton.textContent = testerLabels.runTest;
           }
         });
       }
+
+      applyTranslations("en");
     </script>
   </body>
 </html>
