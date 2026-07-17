@@ -9,6 +9,42 @@
       name="description"
       content="POP MCP Server for Italian e-invoicing, Peppol, PDF invoice generation, and account onboarding."
     />
+    <meta property="og:title" content="POP MCP Server" />
+    <meta
+      property="og:description"
+      content="Remote MCP endpoint for POP document workflows and business integrations."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mcp.popapi.io/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="POP MCP Server" />
+    <meta
+      name="twitter:description"
+      content="Remote MCP endpoint for POP document workflows and business integrations."
+    />
+    <link rel="canonical" href="https://mcp.popapi.io/" />
+    <link rel="alternate" href="/llms.txt" type="text/plain" title="LLMs summary" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebAPI",
+        "name": "POP MCP Server",
+        "url": "https://mcp.popapi.io/mcp",
+        "description": "Remote MCP endpoint for POP document workflows and business integrations.",
+        "documentation": "https://github.com/getpopapi/pop-mcp",
+        "provider": {
+          "@type": "Organization",
+          "name": "POP",
+          "url": "https://popapi.io"
+        },
+        "category": "Model Context Protocol",
+        "audience": {
+          "@type": "Audience",
+          "audienceType": "Developers and AI clients"
+        },
+        "authenticationRequirement": "Authorization: Bearer <license_key>"
+      }
+    </script>
     <style>
       :root {
         --ink: #102026;
@@ -445,6 +481,31 @@
         line-height: 1.55;
       }
 
+      .summary-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .summary-item {
+        display: grid;
+        gap: 6px;
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .summary-item dt {
+        font-weight: 700;
+      }
+
+      .summary-item dd {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
       pre {
         margin: 20px 0 0;
         padding: 18px;
@@ -570,6 +631,11 @@
     </style>
   </head>
   <body>
+    <noscript>
+      <div style="padding: 14px 18px; background: #102026; color: #ffffff; font-family: sans-serif;">
+        JavaScript is disabled. This page remains readable, but language switching and the connection tester require JavaScript.
+      </div>
+    </noscript>
     <div class="page">
       <header class="topbar">
         <div class="brand">
@@ -623,6 +689,51 @@
             <div class="data-row">
               <code id="auth-text">Authorization: Bearer &lt;license_key&gt;</code>
               <button class="copy-button" type="button" data-copy-target="auth-text" data-label-key="copy">Copy</button>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid" id="llm-summary">
+        <article class="card section span-8">
+          <h2 id="llm-summary-title">Machine-readable summary</h2>
+          <p id="llm-summary-body">
+            This section states the essential MCP connection facts in plain text so both developers and LLM-based agents can extract the integration contract quickly.
+          </p>
+          <dl class="summary-list">
+            <div class="summary-item">
+              <dt id="llm-item-1-title">Protocol endpoint</dt>
+              <dd id="llm-item-1-body"><code>https://mcp.popapi.io/mcp</code></dd>
+            </div>
+            <div class="summary-item">
+              <dt id="llm-item-2-title">Authentication</dt>
+              <dd id="llm-item-2-body"><code>Authorization: Bearer &lt;license_key&gt;</code> on every request.</dd>
+            </div>
+            <div class="summary-item">
+              <dt id="llm-item-3-title">Transport</dt>
+              <dd id="llm-item-3-body">Streamable HTTP MCP. POST requests must accept both <code>application/json</code> and <code>text/event-stream</code>.</dd>
+            </div>
+            <div class="summary-item">
+              <dt id="llm-item-4-title">Human and machine routes</dt>
+              <dd id="llm-item-4-body"><code>/</code> is the landing page, <code>/mcp</code> is the MCP endpoint, and <code>/health</code> is the JSON health check.</dd>
+            </div>
+            <div class="summary-item">
+              <dt id="llm-item-5-title">First protocol test</dt>
+              <dd id="llm-item-5-body">Use JSON-RPC method <code>tools/list</code> to verify live endpoint connectivity and tool exposure.</dd>
+            </div>
+          </dl>
+        </article>
+
+        <aside class="card section span-4">
+          <h2 id="llm-side-title">Additional machine access</h2>
+          <div class="stack">
+            <div class="tool">
+              <strong id="llm-side-item-1-title">Plain-text summary</strong>
+              <p id="llm-side-item-1-body">A static <code>/llms.txt</code> file is available for agents that prefer concise text retrieval over full-page parsing.</p>
+            </div>
+            <div class="tool">
+              <strong id="llm-side-item-2-title">Structured metadata</strong>
+              <p id="llm-side-item-2-body">The page also exposes WebAPI JSON-LD metadata for systems that inspect structured HTML metadata.</p>
             </div>
           </div>
         </aside>
