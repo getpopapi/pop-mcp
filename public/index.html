@@ -663,14 +663,26 @@
           justify-content: center;
         }
 
-        .nav {
-          width: 100%;
+        .topbar.nav-open {
           flex-wrap: wrap;
-          justify-content: flex-end;
+          align-items: flex-start;
         }
 
-        .nav-links {
+        .topbar.nav-open .nav {
+          display: contents;
+        }
+
+        .topbar.nav-open .nav-toggle {
+          order: 2;
+          margin-left: auto;
+        }
+
+        .topbar.nav-open .lang-switcher {
           order: 3;
+        }
+
+        .topbar.nav-open .nav-links {
+          order: 4;
           flex-basis: 100%;
           z-index: 30;
           display: none;
@@ -678,8 +690,7 @@
           align-items: stretch;
           gap: 4px;
           margin-top: 12px;
-          margin-left: auto;
-          width: min(100%, 360px);
+          width: 100%;
           padding: 8px;
           border: 1px solid rgba(16, 32, 38, 0.08);
           border-radius: 24px;
@@ -688,7 +699,7 @@
           box-shadow: 0 18px 40px rgba(16, 32, 38, 0.10);
         }
 
-        .nav-links a {
+        .topbar.nav-open .nav-links a {
           display: flex;
           align-items: center;
           min-height: 48px;
@@ -699,12 +710,12 @@
           transition: background 160ms ease, transform 160ms ease;
         }
 
-        .nav-links a:hover {
+        .topbar.nav-open .nav-links a:hover {
           background: rgba(16, 32, 38, 0.06);
           transform: translateX(2px);
         }
 
-        .nav-links a:active {
+        .topbar.nav-open .nav-links a:active {
           transform: translateX(0);
           background: rgba(242, 107, 94, 0.10);
         }
@@ -1283,8 +1294,9 @@
 
       const navToggle = document.getElementById("nav-toggle");
       const navLinksPanel = document.getElementById("nav-links");
+      const topbar = document.querySelector(".topbar");
 
-      if (navToggle && navLinksPanel) {
+      if (navToggle && navLinksPanel && topbar) {
         const mobileNavQuery = window.matchMedia("(max-width: 960px)");
         let navOpen = false;
 
@@ -1293,10 +1305,12 @@
             // Desktop: let the stylesheet's always-visible flex row control display.
             navLinksPanel.style.display = "";
             navToggle.setAttribute("aria-expanded", "false");
+            topbar.classList.remove("nav-open");
             return;
           }
           navLinksPanel.style.display = navOpen ? "flex" : "none";
           navToggle.setAttribute("aria-expanded", String(navOpen));
+          topbar.classList.toggle("nav-open", navOpen);
         }
 
         function setNavOpen(open) {
