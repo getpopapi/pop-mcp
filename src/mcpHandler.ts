@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { createPopServer } from "./server.js";
+import { createPopServer } from "./mcpServer.js";
 import type { Environment } from "./types.js";
 
 // Node-http handler for the Vercel serverless function backing /mcp (see

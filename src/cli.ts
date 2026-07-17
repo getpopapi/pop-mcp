@@ -2,7 +2,7 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createPopServer } from "./server.js";
+import { createPopServer } from "./mcpServer.js";
 import { getApiKey, getEnvironment } from "./client.js";
 
 async function main(): Promise<void> {
