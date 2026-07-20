@@ -7,11 +7,15 @@ export const API_ENDPOINTS = {
   createXml: "/create-xml",
   createUbl: "/create-ubl",
   createPdf: "/create-pdf",
-  documentNotifications: "/sdi-via-pop/document-notifications",
+  createKsefXml: "/create-ksef-xml",
+  createZugferd: "/create-zugferd",
+  zohoStatus: "/integration/zoho/status",
+  zohoSync: "/integration/zoho/sync",
+  documentNotifications: "/sdi/document-notifications",
   peppolDocumentGet: "/peppol/document-get",
-  sdiDocumentVerify: "/sdi-via-pop/document-verify",
-  sdiDocumentPreserve: "/sdi-via-pop/document-preserve",
-  sdiDocumentGet: "/sdi-via-pop/document-get",
+  sdiDocumentVerify: "/sdi/document-verify",
+  sdiDocumentPreserve: "/sdi/document-preserve",
+  sdiDocumentGet: "/sdi/document-get",
 } as const;
 
 export const ONBOARDING_BASE_URLS = {

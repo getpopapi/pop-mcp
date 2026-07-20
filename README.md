@@ -21,7 +21,7 @@ MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, s
 
 ---
 
-## Tools Available (8 total)
+## Tools Available (11 total)
 
 ### Invoice Creation
 | Tool | Endpoint | Plan |
@@ -29,19 +29,22 @@ MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, s
 | `pop_create_sdi_invoice` | POST `/create-xml` | Any |
 | `pop_create_peppol_invoice` | POST `/create-ubl` | Any (Basic+ to submit) |
 | `pop_create_pdf_invoice` | POST `/create-pdf` | Any (Basic+ for email) |
+| `pop_create_ksef_invoice` | POST `/create-ksef-xml` | Any (KSeF setup for provider submission) |
+| `pop_create_zugferd_invoice` | POST `/create-zugferd` | Any |
+| `pop_sync_zoho_document` | POST `/integration/zoho/sync` | Zoho connector required |
 
 ### Status & Retrieval
 | Tool | Endpoint | Plan |
 |------|----------|------|
-| `pop_get_invoice_status` | POST `/sdi-via-pop/document-notifications` | Any |
+| `pop_get_invoice_status` | POST `/sdi/document-notifications` | Any |
 | `pop_get_peppol_document` | POST `/peppol/document-get` | Basic+ |
-| `pop_get_sdi_document` | POST `/sdi-via-pop/document-get` | Basic+ |
+| `pop_get_sdi_document` | POST `/sdi/document-get` | Basic+ |
 
 ### Validation & Advanced SdI
 | Tool | Endpoint | Plan |
 |------|----------|------|
-| `pop_verify_sdi_document` | POST `/sdi-via-pop/document-verify` | Basic+ |
-| `pop_preserve_document` | POST `/sdi-via-pop/document-preserve` | Basic+ |
+| `pop_verify_sdi_document` | POST `/sdi/document-verify` | Basic+ |
+| `pop_preserve_document` | POST `/sdi/document-preserve` | Basic+ |
 
 ---
 
@@ -178,7 +181,7 @@ Authorization: Bearer <your_license_key>
 
 Any MCP-speaking HTTP client can connect: Claude (remote connector), the OpenAI Responses API,
 n8n, [MCP Inspector](https://github.com/modelcontextprotocol/inspector), or a custom integration —
-not just Claude Desktop. All 13 tools (8 invoice/status/advanced + 5 onboarding) are available;
+not just Claude Desktop. All invoice, status, advanced, and onboarding tools are available;
 onboarding tools use their own `onboarding_token` per call and don't require the Bearer key.
 
 **Example with MCP Inspector:**

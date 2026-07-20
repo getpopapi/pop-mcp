@@ -15,6 +15,8 @@ const GetPeppolDocumentSchema = z.object({
   uuid: z.string().uuid().describe("Peppol document UUID returned by pop_create_peppol_invoice when submit_to_peppol=true"),
   zone: z.string().length(2).optional()
     .describe("Country code of the Peppol access point zone (e.g. 'BE' for Belgium). Required for some countries."),
+  type: z.enum(["invoice", "credit-note"]).default("invoice")
+    .describe("Document type to retrieve: invoice or credit-note"),
   response_format: z.enum(["markdown", "json"]).default("markdown"),
   environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
 });
@@ -151,6 +153,7 @@ Args:
             license_key: ctx.apiKey,
             ...(params.environment ? { environment: params.environment } : {}),
             integration,
+            type: params.type,
           },
           ctx
         );

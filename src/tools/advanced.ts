@@ -50,7 +50,7 @@ Common validation checks:
   - Required field presence
   - Amount consistency
 
-Requires: Growth+ plan with active SdI via POP integration and registered business.
+Requires: Basic+ plan with active SdI via POP integration and registered business.
 
 Args:
   - xml_base64: The SdI XML document encoded as a Base64 string`,
@@ -100,7 +100,7 @@ Italian law requires electronic invoices to be preserved for 10 years. This tool
 
 IMPORTANT: Only call this tool when pop_get_invoice_status returns a status of RC (Ricevuta di Consegna — successfully delivered) or MC (Mancata Consegna — delivery failed but SdI accepted). Do NOT call for other statuses such as NS, EC, SE, or DT.
 
-Requires: Growth+ plan with active SdI via POP integration.
+Requires: Basic+ plan with active SdI via POP integration.
 
 Args:
   - uuid: UUID of the SdI document to archive`,

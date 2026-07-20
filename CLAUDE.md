@@ -4,7 +4,7 @@
 
 A **TypeScript MCP (Model Context Protocol) server** for the **POP Cloud API**, enabling LLMs (Claude, etc.) to generate, submit, and manage electronic invoices directly from AI assistants.
 
-The server exposes 8 tools covering the core POP API surface: Italian e-invoicing (FatturaPA/SdI), Peppol (EU cross-border), PDF generation, document validation, archival, and status tracking.
+The server exposes invoice-generation, integration, status, validation, archival, and onboarding tools covering the maintained POP API surface, including SdI, Peppol, KSeF, ZUGFeRD, PDF, and Zoho.
 
 ---
 
@@ -30,7 +30,7 @@ src/
 ├── schemas/
 │   └── invoice.ts        Full Zod schema for FatturaPA invoice data structure
 └── tools/
-    ├── invoices.ts       pop_create_sdi_invoice, pop_create_peppol_invoice, pop_create_pdf_invoice
+    ├── invoices.ts       SdI, Peppol, PDF, KSeF, ZUGFeRD, and Zoho invoice actions
     ├── status.ts         pop_get_invoice_status, pop_get_peppol_document, pop_get_sdi_document
     └── advanced.ts       pop_verify_sdi_document, pop_preserve_document
 ```
@@ -47,11 +47,14 @@ src/
 | `pop_create_sdi_invoice` | POST `/create-xml` | Any |
 | `pop_create_peppol_invoice` | POST `/create-ubl` | Any (Basic+ to submit) |
 | `pop_create_pdf_invoice` | POST `/create-pdf` | Any (Basic+ for email) |
-| `pop_get_invoice_status` | POST `/document-notifications` | Any |
+| `pop_create_ksef_invoice` | POST `/create-ksef-xml` | Any (KSeF setup for provider submission) |
+| `pop_create_zugferd_invoice` | POST `/create-zugferd` | Any |
+| `pop_sync_zoho_document` | POST `/integration/zoho/sync` | Zoho connector required |
+| `pop_get_invoice_status` | POST `/sdi/document-notifications` | Any |
 | `pop_get_peppol_document` | POST `/peppol/document-get` | Basic+ |
-| `pop_get_sdi_document` | POST `/sdi/document-get` | Growth+ |
-| `pop_verify_sdi_document` | POST `/sdi/document-verify` | Growth+ |
-| `pop_preserve_document` | POST `/sdi/document-preserve` | Growth+ |
+| `pop_get_sdi_document` | POST `/sdi/document-get` | Basic+ |
+| `pop_verify_sdi_document` | POST `/sdi/document-verify` | Basic+ |
+| `pop_preserve_document` | POST `/sdi/document-preserve` | Basic+ |
 
 ---
 
@@ -265,7 +268,7 @@ Build must pass cleanly (`tsc` zero errors) before any release.
 
 ## Status
 
-- [x] All 8 invoice tools implemented and registered
+- [x] Invoice, integration, status, validation, archival, and onboarding tools implemented and registered
 - [x] 5 onboarding tools implemented and registered (v1.1.0)
 - [x] Full Zod schemas for invoice data validation
 - [x] Build passes with zero TypeScript errors
@@ -274,14 +277,14 @@ Build must pass cleanly (`tsc` zero errors) before any release.
 - [x] Published to npm as `@getpopapi/pop-mcp@1.0.2`
 - [x] Published to MCP Registry as `io.github.popapidev/pop-mcp`
 - [x] Canonical payload structure documented in `rapidapi-endpoint-examples-v2.txt`
-- [ ] Publish v1.1.0 to npm and MCP Registry
+- [ ] Publish v1.2.0 to npm and MCP Registry
 - [ ] Update `io.github.popapidev` → `io.github.getpopapi` once org membership is public
 - [ ] Add evaluation questions (see `/root/.claude/skills/mcp-builder/reference/evaluation.md`)
 - [ ] Update RapidAPI endpoint examples to v2 payload format
 
 ## Remote HTTP server (2026-07-13, pivoted to Vercel 2026-07-16)
 
-Added a second transport alongside stdio: an HTTP server exposing the same 13 tools over
+Added a second transport alongside stdio: an HTTP server exposing the same tool set over
 Streamable HTTP at `https://mcp.popapi.io/mcp`, for any MCP client (Claude, OpenAI Responses API,
 n8n), not just Claude Desktop. This is **multi-tenant** — each caller supplies their own POP
 license key via `Authorization: Bearer <key>` instead of the server reading a single fixed

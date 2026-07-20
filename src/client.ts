@@ -39,6 +39,23 @@ export async function apiPost<T>(
   return response.data;
 }
 
+export async function apiGet<T>(
+  endpoint: string,
+  ctx: ApiContext
+): Promise<T> {
+  const response = await axios.get<T>(
+    `${API_BASE_URLS[ctx.environment]}${endpoint}`,
+    {
+      timeout: DEFAULT_TIMEOUT_MS,
+      headers: {
+        "User-Agent": USER_AGENT,
+        "X-API-Key": ctx.apiKey,
+      },
+    }
+  );
+  return response.data;
+}
+
 export function handleApiError(error: unknown): string {
   if (error instanceof AxiosError) {
     if (error.response) {

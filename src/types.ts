@@ -7,7 +7,7 @@ export interface PopApiError {
 }
 
 export interface IntegrationConfig {
-  use: "sdi-via-pop" | "peppol-via-pop" | "fatture-in-cloud" | "pop-to-webhook";
+  use: "sdi-via-pop" | "peppol-via-pop" | "ksef" | "ksef-via-pop" | "fatture-in-cloud" | "pop-to-webhook";
   action: "create" | "update" | "delete";
   id?: string;
   uuid?: string;

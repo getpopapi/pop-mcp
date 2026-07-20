@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { apiPost, handleApiError } from "../client.js";
+import { apiGet, apiPost, handleApiError } from "../client.js";
 import { API_ENDPOINTS } from "../constants.js";
 import {
   InvoiceDataSchema,
@@ -51,6 +51,36 @@ const CreatePdfInvoiceSchema = z.object({
   data: InvoiceDataSchema.describe("Full invoice data object. Must include data.pdf configuration for PDF-specific settings."),
   send_email: z.boolean().default(false)
     .describe("If true, emails the PDF to recipients in data.pdf.email_invoice.to (max 3 addresses, Basic+ plan required)."),
+  plugin_version: z.string().optional(),
+  site_title: z.string().optional(),
+  site_url: z.string().url().optional(),
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
+
+const CreateKsefInvoiceSchema = z.object({
+  data: InvoiceDataSchema.describe("Full invoice data object for KSeF FA(3) generation"),
+  integration: z.object({
+    use: z.enum(["ksef", "ksef-via-pop"]),
+    action: z.enum(["create", "update", "delete"]).default("create"),
+  }).strict().optional().describe("Optional KSeF provider submission configuration"),
+  plugin_version: z.string().optional(),
+  site_title: z.string().optional(),
+  site_url: z.string().url().optional(),
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
+
+const CreateZugferdInvoiceSchema = z.object({
+  data: InvoiceDataSchema.describe("Full invoice data object for ZUGFeRD/Factur-X generation"),
+  plugin_version: z.string().optional(),
+  site_title: z.string().optional(),
+  site_url: z.string().url().optional(),
+  environment: z.string().optional().describe("Target environment (e.g. 'sandbox')"),
+});
+
+const SyncZohoDocumentSchema = z.object({
+  data: InvoiceDataSchema.describe("Full invoice data object for Zoho synchronization"),
+  check_connector_status: z.boolean().default(true)
+    .describe("Check that the account's Zoho connector is active before synchronizing"),
   plugin_version: z.string().optional(),
   site_title: z.string().optional(),
   site_url: z.string().url().optional(),
@@ -175,6 +205,99 @@ Args:
           isError: true,
           content: [{ type: "text", text: handleApiError(error) }],
         };
+      }
+    }
+  );
+
+  server.registerTool(
+    "pop_create_ksef_invoice",
+    {
+      title: "Create KSeF Invoice (FA(3) XML)",
+      description: `Generate a Polish KSeF FA(3) XML invoice or credit note.
+
+The POP Cloud API performs the authoritative KSeF fiscal validation and can optionally submit the document through the configured KSeF provider integration. KSeF onboarding and legal-entity configuration must be completed for provider submission.`,
+      inputSchema: CreateKsefInvoiceSchema,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    async (params) => {
+      try {
+        const payload = {
+          ...buildBasePayload(ctx.apiKey, params.data, {
+            plugin_version: params.plugin_version,
+            site_title: params.site_title,
+            site_url: params.site_url,
+            environment: params.environment,
+          }),
+          ...(params.integration ? { integration: params.integration } : {}),
+        };
+        const result = await apiPost<unknown>(API_ENDPOINTS.createKsefXml, payload, ctx);
+        return { content: [{ type: "text", text: typeof result === "string" ? result : JSON.stringify(result, null, 2) }], structuredContent: typeof result === "object" && result !== null ? result as Record<string, unknown> : undefined };
+      } catch (error) {
+        return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+      }
+    }
+  );
+
+  server.registerTool(
+    "pop_create_zugferd_invoice",
+    {
+      title: "Create ZUGFeRD / Factur-X Invoice",
+      description: `Generate a ZUGFeRD/Factur-X document package containing a visual PDF, EN16931 CII XML, and hybrid PDF with embedded XML.
+
+The POP Cloud API performs the authoritative document and fiscal validation and returns structured generation metadata.`,
+      inputSchema: CreateZugferdInvoiceSchema,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    async (params) => {
+      try {
+        const result = await apiPost<unknown>(
+          API_ENDPOINTS.createZugferd,
+          buildBasePayload(ctx.apiKey, params.data, {
+            plugin_version: params.plugin_version,
+            site_title: params.site_title,
+            site_url: params.site_url,
+            environment: params.environment,
+          }),
+          ctx
+        );
+        return { content: [{ type: "text", text: typeof result === "string" ? result : JSON.stringify(result, null, 2) }], structuredContent: typeof result === "object" && result !== null ? result as Record<string, unknown> : undefined };
+      } catch (error) {
+        return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
+      }
+    }
+  );
+
+  server.registerTool(
+    "pop_sync_zoho_document",
+    {
+      title: "Sync Invoice to Zoho",
+      description: `Synchronize an invoice or credit note with the account's native Zoho Books/Invoice connector.
+
+The connector status is checked first by default. TD04 credit notes require a reference in connected_invoice_data, and the POP Cloud API performs the authoritative Zoho payload validation and mapping.`,
+      inputSchema: SyncZohoDocumentSchema,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    async (params) => {
+      try {
+        if (params.check_connector_status) {
+          const status = await apiGet<{ data?: { active_connector?: string; zoho_connected?: boolean } }>(API_ENDPOINTS.zohoStatus, ctx);
+          if (status?.data?.active_connector !== "zoho" || status?.data?.zoho_connected !== true) {
+            throw new Error("Zoho integration is not active for this account. Enable it from the POP account panel before using this action.");
+          }
+        }
+        const result = await apiPost<unknown>(
+          API_ENDPOINTS.zohoSync,
+          buildBasePayload(ctx.apiKey, params.data, {
+            plugin_version: params.plugin_version,
+            site_title: params.site_title,
+            site_url: params.site_url,
+            environment: params.environment,
+          }),
+          ctx
+        );
+        return { content: [{ type: "text", text: typeof result === "string" ? result : JSON.stringify(result, null, 2) }], structuredContent: typeof result === "object" && result !== null ? result as Record<string, unknown> : undefined };
+      } catch (error) {
+        return { isError: true, content: [{ type: "text", text: handleApiError(error) }] };
       }
     }
   );
