@@ -1,16 +1,26 @@
   {
     "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
     "name": "io.github.popapidev/pop-mcp",
-    "description": "Italian e-invoicing (FatturaPA/SdI), Peppol, and PDF invoice generation via POP",
+    "description": "Italian e-invoicing (FatturaPA/SdI), Peppol, KSeF, ZUGFeRD, and PDF invoice generation via POP",
     "repository": {
       "url": "https://github.com/getpopapi/pop-mcp",
       "source": "github"
     },
-    "version": "1.0.2",
+    "version": "2.0.0",
     "packages": [{
       "registryType": "npm",
       "identifier": "@getpopapi/pop-mcp",
-      "version": "1.0.2",
+      "version": "2.0.0",
       "transport": { "type": "stdio" }
+    }],
+    "remotes": [{
+      "type": "streamable-http",
+      "url": "https://mcp.popapi.io/mcp",
+      "headers": [{
+        "name": "Authorization",
+        "description": "POP license key as a Bearer token, e.g. 'Bearer your_license_key_here'",
+        "isRequired": true,
+        "isSecret": true
+      }]
     }]
   }

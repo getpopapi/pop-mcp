@@ -1,7 +1,7 @@
 {
   "name": "@getpopapi/pop-mcp",
   "mcpName": "io.github.popapidev/pop-mcp",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "MCP server for POP Cloud API — Italian e-invoicing (SdI/FatturaPA), Peppol, PDF invoice generation, and account onboarding",
   "type": "module",
   "main": "dist/cli.js",
@@ -17,16 +17,19 @@
     "build": "tsc",
     "check": "tsc -p tsconfig.vercel.json",
     "bundle:api": "node scripts/bundle-vercel-api.mjs",
+    "pretest": "npm run build",
+    "test": "tsx --test test/**/*.test.ts",
     "clean": "rm -rf dist",
     "inspector": "npx @modelcontextprotocol/inspector dist/cli.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "axios": "^1.7.9",
-    "zod": "^3.23.8"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import { z } from "zod";
 import { apiOnboardingPost, apiOnboardingGet, handleApiError } from "../client.js";
 import { ONBOARDING_ENDPOINTS } from "../constants.js";

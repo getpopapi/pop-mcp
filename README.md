@@ -1,11 +1,107 @@
+<!-- mcp-name: io.github.popapidev/pop-mcp -->
+
 # pop-mcp
 
-MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, submit, and manage Italian e-invoices (FatturaPA/SdI), Peppol invoices, and PDF invoices directly from AI assistants.
+MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, submit, and manage Italian e-invoices (FatturaPA/SdI), Peppol, KSeF, ZUGFeRD/Factur-X, and PDF invoices directly from AI assistants.
 
-> **npm:** `@getpopapi/pop-mcp`
+> **npm:** `@getpopapi/pop-mcp` · **Remote:** `https://mcp.popapi.io/mcp`
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-green)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-green)](https://nodejs.org/)
+
+---
+
+## Remote MCP (HTTP) — fastest way to get started
+
+Don't want to install anything? `pop-mcp` runs as a hosted, multi-tenant MCP server at:
+
+```
+https://mcp.popapi.io/mcp
+```
+
+Head to [popapi.io](https://popapi.io) to grab a license key, then point any MCP-speaking client at
+that URL with your key as a Bearer token. No local install, no `POP_API_KEY` env var, no build step
+— this is the recommended way to try `pop-mcp` for most people. Use the local stdio setup below only
+if you specifically need a Claude Desktop config running a process on your own machine.
+
+### How it works
+
+This endpoint speaks MCP **2026-07-28**, which is fully stateless: there is no `initialize`
+handshake and no session to open or track. Every request is self-contained — it names its own
+protocol version and capabilities — and the server answers it independently. Because of that,
+this is a **multi-tenant** endpoint: it never reads a fixed `POP_API_KEY` from its own environment.
+Every request must carry your own POP license key as a Bearer token:
+
+```
+Authorization: Bearer <your_license_key>
+```
+
+A missing or malformed `Authorization` header returns a `401` with `error_code: "unauthorized_user"`
+before any POP API call is made. An invalid-but-well-formed key is passed straight through to POP's
+API and surfaces whatever error POP returns (`unauthorized_user`, `insufficient_level`, etc.) — the
+server does not re-validate keys itself.
+
+Any modern MCP HTTP client can connect: Claude (remote connector), the OpenAI Responses API, n8n,
+[MCP Inspector](https://github.com/modelcontextprotocol/inspector), or a custom integration — not
+just Claude Desktop. All invoice, status, advanced, and onboarding tools are available; onboarding
+tools use their own `onboarding_token` per call and don't require the Bearer key.
+
+### Example with curl
+
+Discover the server's supported protocol versions and capabilities (optional — clients can also
+just call `tools/list` or `tools/call` directly and handle a version-negotiation error inline):
+
+```bash
+curl -X POST https://mcp.popapi.io/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_license_key_here" \
+  -H "MCP-Protocol-Version: 2026-07-28" \
+  -H "Mcp-Method: server/discover" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "server/discover",
+    "params": { "_meta": { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} } }
+  }'
+```
+
+List the available tools — every request is self-contained, so `_meta` (protocol version + client
+capabilities) travels on every call, not just the first one:
+
+```bash
+curl -X POST https://mcp.popapi.io/mcp \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_license_key_here" \
+  -H "MCP-Protocol-Version: 2026-07-28" \
+  -H "Mcp-Method: tools/list" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/list",
+    "params": { "_meta": { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} } }
+  }'
+```
+
+The tool catalog is identical for every license key, so `tools/list` and `server/discover`
+responses carry a one-hour public cache hint (`ttlMs: 3600000, cacheScope: "public"`) — clients and
+gateways may cache them across tenants.
+
+> **`MCP-Protocol-Version` and `Mcp-Method` are required on every request** (per SEP-2243), and must
+> match the body's `_meta.protocolVersion` and `method` exactly, or the server rejects the request
+> with a `400` and JSON-RPC error `-32020` (`HeaderMismatch`). `tools/call` requests additionally
+> require an `Mcp-Name` header matching `params.name`.
+
+### Example with MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+Configure it to connect to `https://mcp.popapi.io/mcp` with header
+`Authorization: Bearer <your_license_key>`.
+
+This endpoint runs as a Vercel serverless function (`api/mcp.ts` → `src/mcpHandler.ts`). To run it
+locally: `npx vercel dev` (requires `vercel link` to the project first).
 
 ---
 
@@ -50,7 +146,7 @@ MCP (Model Context Protocol) server for **POP** — enabling LLMs to generate, s
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20
 - A [POP](https://popapi.io) license key
 - For SdI/Peppol submission: active integration on your POP account (Basic/Growth plan)
 
@@ -160,56 +256,6 @@ Add to your `claude_desktop_config.json`:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
-
----
-
-## Remote MCP (HTTP)
-
-`pop-mcp` is also available as a remote, generic MCP server at:
-
-```
-https://mcp.popapi.io/mcp
-```
-
-This is a shared, multi-tenant endpoint — unlike the stdio path above, it does **not** read
-`POP_API_KEY` from the server's environment. Every request must carry your own POP license key as
-a Bearer token:
-
-```
-Authorization: Bearer <your_license_key>
-```
-
-Any MCP-speaking HTTP client can connect: Claude (remote connector), the OpenAI Responses API,
-n8n, [MCP Inspector](https://github.com/modelcontextprotocol/inspector), or a custom integration —
-not just Claude Desktop. All invoice, status, advanced, and onboarding tools are available;
-onboarding tools use their own `onboarding_token` per call and don't require the Bearer key.
-
-**Example with MCP Inspector:**
-
-```bash
-npx @modelcontextprotocol/inspector
-```
-
-Configure it to connect to `https://mcp.popapi.io/mcp` with header
-`Authorization: Bearer <your_license_key>`.
-
-**Example with curl** (`tools/list` — every request requires the Bearer header, including this one):
-
-```bash
-curl -X POST https://mcp.popapi.io/mcp \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json, text/event-stream" \
-  -H "Authorization: Bearer your_license_key_here" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
-```
-
-A missing or malformed `Authorization` header returns a `401` with `error_code: "unauthorized_user"`
-before any POP API call is made. An invalid-but-well-formed key is passed straight through to POP's
-API and surfaces whatever error POP returns (`unauthorized_user`, `insufficient_level`, etc.) — the
-server does not re-validate keys itself.
-
-This endpoint runs as a Vercel serverless function (`api/mcp.ts` → `src/mcpHandler.ts`). To run it
-locally: `npx vercel dev` (requires `vercel link` to the project first).
 
 ---
 
@@ -324,6 +370,90 @@ Generate a branded PDF invoice. Optionally email it to up to 3 recipients.
       "total_tax": "22.00",
       "email_invoice": { "to": ["customer@example.com"] }
     }
+  }
+}
+```
+
+---
+
+### `pop_create_ksef_invoice`
+
+Generate a Polish KSeF FA(3) XML invoice or credit note. Optionally submit it through a configured KSeF provider integration.
+
+**MCP inputs:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `data` | object | ✅ | Full invoice data for KSeF FA(3) generation |
+| `integration` | object | — | Optional KSeF provider submission config: `{ use: "ksef" \| "ksef-via-pop", action }` |
+| `environment` | string | — | Target environment (e.g. `"sandbox"`) |
+
+**Domain rules specific to KSeF:**
+- Poland only — `transfer_lender.personal_data.tax_id_vat.country_id` must be `"PL"` with a 10-digit NIP as `id_code`
+- `customer_type` must be `"company"` or `"freelance"` (no private individuals)
+- `nature` is **always required** at the top level for KSeF (unlike SdI/Peppol, where it's only required at 0% VAT) — reuses the same SdI nature codes (`N1`, `N2.1`, `N2.2`, `N3.1`, `N3.2`, `N4`, ...) to derive KSeF's internal fiscal variant
+- `transmitter_data` is not used (SdI-only concept)
+- `payment_data.payment_details` only accepts `MP01`, `MP02`/`MP03`, `MP05`, `MP08` — other payment method codes are rejected at generation time
+- Base XML generation is available on any plan; provider submission via `integration.use: "ksef"` requires a Basic+ plan and the supplier already enrolled as a KSeF legal entity in the POP dashboard
+
+**API payload sent:**
+
+```json
+{
+  "license_key": "YOUR_LICENSE_KEY",
+  "user_agent": "pop-mcp",
+  "user_agent_version": "1.0.0",
+  "data": { "...invoice fields...", "nature": "N1" },
+  "integration": { "use": "ksef", "action": "create" }
+}
+```
+
+> `integration` is omitted entirely for local XML-only generation (no provider submission).
+
+**Returns:** raw FA(3) XML (`application/xml`) for local generation, or JSON (with a UUID) when submitted through a provider integration.
+
+---
+
+### `pop_create_zugferd_invoice`
+
+Generate a ZUGFeRD/Factur-X document package: a visual PDF, an EN16931 CII XML, and a hybrid PDF/A-3 with the XML embedded.
+
+**MCP inputs:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `data` | object | ✅ | Full invoice data for ZUGFeRD/Factur-X generation |
+| `environment` | string | — | Target environment (e.g. `"sandbox"`) |
+
+This tool has no `integration` parameter — ZUGFeRD generation is local only, with no submit/delivery step.
+
+**API payload sent:**
+
+```json
+{
+  "license_key": "YOUR_LICENSE_KEY",
+  "user_agent": "pop-mcp",
+  "user_agent_version": "1.0.0",
+  "data": { "...invoice fields..." }
+}
+```
+
+**Returns:** JSON with generation metadata and three Base64-encoded attachments:
+
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "profile": "EN16931",
+    "attachments": {
+      "pdf": { "filename": "...", "mime": "application/pdf", "content_base64": "..." },
+      "xml": { "filename": "...", "mime": "application/xml", "content_base64": "..." },
+      "hybrid_pdf": { "filename": "...", "mime": "application/pdf", "content_base64": "..." }
+    },
+    "validation": { "...": "..." },
+    "errors": [],
+    "warnings": []
   }
 }
 ```
