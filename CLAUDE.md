@@ -396,3 +396,37 @@ or framework, and later, what output directory it expected. Don't infer the caus
 crash message alone, and don't stop at the first plausible-looking fix — confirm the *build log*
 after every attempt, since Vercel tends to fail one requirement at a time rather than reporting
 everything up front.
+
+
+## Analytics & cookie consent on the landing pages (2026-09-19)
+
+The five static pages under `public/` load `public/assets/analytics.js`, one shared file included
+with a single `<script src="/assets/analytics.js" defer>` per page (hand-written HTML, no build
+step — five copies of the snippet would drift).
+
+It sets up the Iubenda Cookie Solution (site `3784851`, same account as popapi.io/blog/docs) and
+injects GA4 `G-3TN99VJ6HD` as `_iub_cs_activate` placeholders, so no analytics cookie is written
+before consent to the measurement purpose. GA is gated on `mcp.popapi.io`: preview deploys and local
+servers still show the banner, but send nothing to the property.
+
+The banner language is read from `document.documentElement.lang` at load. The in-page EN/IT switcher
+changes that attribute afterwards, but Iubenda reads its config once, so the banner stays in the
+language the page was served in (English today). If the language choice ever moves into the URL or
+gets persisted, the script picks it up with no change.
+
+No GA4 cross-domain config: mcp.popapi.io is a subdomain of the same registrable domain as the other
+POP surfaces, so the `_ga` cookie is already shared on `.popapi.io`.
+
+## Sitemap rendering (2026-09-19)
+
+`public/sitemap.xml` now points at `public/sitemap.xsl`, the same stylesheet popapi.io, docs and
+blog carry (a stylesheet must be same-origin as the XML referencing it, so each site keeps its own
+copy — edit one, copy it to the other three). It only changes what a browser shows: crawlers parse
+the XML underneath and ignore the `<?xml-stylesheet?>` line.
+
+`vercel.json` sets `Content-Type: text/xsl` on `/sitemap.xsl`. Without it Vercel infers
+`application/octet-stream` from the extension and the browser drops the stylesheet with no error —
+the page just renders as unstyled XML, which looks exactly like the stylesheet being missing.
+
+The sitemap itself is hand-maintained: five URLs, `lastmod` dates written by hand. Adding a page
+under `public/` means adding it here too — nothing generates this file.
