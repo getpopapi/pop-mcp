@@ -193,7 +193,8 @@ export const PdfConfigSchema = z.object({
 export const OverridesSchema = z.object({
   language: z.string().optional().describe("Locale override (e.g. 'it', 'en', 'de', 'fr', 'es')"),
   client_lang: z.string().optional().describe("Client locale override used by the API response layer (e.g. 'it_IT', 'en_US')"),
-  bollo_force_apply: z.boolean().optional().describe("Force apply virtual stamp (bollo virtuale) for Italian invoices"),}).strict();
+  bollo_force_apply: z.boolean().optional().describe("Force apply virtual stamp (bollo virtuale) for Italian invoices"),
+}).strict();
 
 // ─── Main Invoice Data Schema ─────────────────────────────────────────────────
 
@@ -222,40 +223,6 @@ export const InvoiceDataSchema = z.object({
 });
 
 export type InvoiceData = z.infer<typeof InvoiceDataSchema>;
-
-// ─── Peppol VAT exemption codes ───────────────────────────────────────────────
-
-export const VATEX_CODES = [
-  "VATEX-EU-G",
-  "VATEX-EU-IC",
-  "VATEX-EU-AE",
-  "VATEX-EU-O",
-  "VATEX-EU-F",
-] as const;
-
-export const VATEX_CODE_DESCRIPTIONS: Record<(typeof VATEX_CODES)[number], string> = {
-  "VATEX-EU-G": "export outside the EU (category G) — buyer outside the EU only",
-  "VATEX-EU-IC": "intra-EU supply of goods (category K) — EU buyer only; requires delivery_data.country",
-  "VATEX-EU-AE": "reverse charge, customer liable for the VAT (category AE), e.g. B2B services to an EU customer",
-  "VATEX-EU-O": "not subject to VAT (category O) — the API rejects it when VAT identifiers are present",
-  "VATEX-EU-F": "margin scheme for second-hand goods",
-};
-
-const vatexCodeList = VATEX_CODES.map((code) => `'${code}'`).join(", ");
-
-// `nature` carries Italian N* codes on SdI/KSeF, so the VATEX restriction is Peppol-only.
-export const PeppolInvoiceDataSchema = InvoiceDataSchema.extend({
-  nature: z.preprocess(
-    (value) => value === null ? undefined : value,
-    z.enum(VATEX_CODES, { error: `nature must be one of the official VATEX exemption codes: ${vatexCodeList}` }).optional()
-  ).describe(
-    "VAT exemption code (official VATEX list). Required when the VAT rate is 0% and the buyer is in another country. " +
-    "It MUST come from the user — never choose, infer or change it yourself. " +
-    Object.entries(VATEX_CODE_DESCRIPTIONS).map(([code, text]) => `${code}: ${text}.`).join(" ")
-  ),
-});
-
-export type PeppolInvoiceData = z.infer<typeof PeppolInvoiceDataSchema>;
 
 // ─── Integration schemas ──────────────────────────────────────────────────────
 

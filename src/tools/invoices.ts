@@ -4,7 +4,6 @@ import { apiGet, apiPost, handleApiError } from "../client.js";
 import { API_ENDPOINTS } from "../constants.js";
 import {
   InvoiceDataSchema,
-  PeppolInvoiceDataSchema,
   SdiIntegrationSchema,
   PeppolIntegrationSchema,
   WebhookIntegrationSchema,
@@ -35,7 +34,7 @@ const CreateSdiInvoiceSchema = z.object({
 });
 
 const CreatePeppolInvoiceSchema = z.object({
-  data: PeppolInvoiceDataSchema.describe("Full invoice data object. Note: Peppol only supports company and freelance customer types. data.nature must be a VATEX code chosen by the user; data.delivery_data.country is required for 'VATEX-EU-IC'."),
+  data: InvoiceDataSchema.describe("Full invoice data object. Note: Peppol only supports company and freelance customer types. data.nature is the VAT exemption code chosen by the user (never by the model); data.delivery_data.country is needed for 'VATEX-EU-IC'."),
   submit_to_peppol: z.boolean().default(false)
     .describe("If true, automatically submits to the Peppol network. Requires active Peppol via POP integration."),
   integration: z.union([
@@ -318,9 +317,9 @@ Restrictions:
 - The customer must have a valid Peppol participant ID
 
 VAT exemption (zero-rate lines):
-- data.nature is one of the official VATEX codes (VATEX-EU-G, VATEX-EU-IC, VATEX-EU-AE, VATEX-EU-O, VATEX-EU-F). Italian N* codes are not accepted here.
-- You must NOT choose the exemption code yourself. It comes from the user: if it is missing, ask. Never infer it from the countries, the vies flag or the VAT rate.
-- 'VATEX-EU-IC' (intra-EU supply of goods) requires data.delivery_data.country (ISO alpha-2, country only, never the address). Ask the user for it, do not guess. data.delivery_data.date is optional (defaults to the document date).
+- data.nature is the VAT exemption code (a VATEX code such as VATEX-EU-G, VATEX-EU-IC, VATEX-EU-AE or VATEX-EU-O; these are examples, not a complete list). The POP API verifies the code and is the only judge of whether it is valid.
+- You must NOT choose the exemption code yourself. It comes from the user: if it is missing, ask. Never infer it from the countries, the vies flag or the VAT rate, and never change it.
+- The POP API requires data.delivery_data.country (ISO alpha-2, country only, never the address) when the code is 'VATEX-EU-IC'. Ask the user for it, do not guess. data.delivery_data.date is optional (defaults to the document date).
 - A credit note must carry the same delivery_data (same country) as the invoice it reverses.
 - If the API returns an error, show it to the user in your own words and ask how to proceed. Do NOT retry with a different exemption code.
 

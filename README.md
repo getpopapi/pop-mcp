@@ -315,9 +315,9 @@ Generate a Peppol UBL 2.1 document. Optionally submit it to the Peppol network.
 - `"pop-to-webhook"` — Deliver to a webhook (requires `id`)
 
 **VAT exemption rules specific to Peppol:**
-- `data.nature` must be one of the official VATEX codes: `VATEX-EU-G` (export outside the EU), `VATEX-EU-IC` (intra-EU supply of goods), `VATEX-EU-AE` (reverse charge), `VATEX-EU-O` (not subject to VAT), `VATEX-EU-F` (margin scheme, second-hand goods). Italian `N*` codes are rejected by this tool's schema. Other tools are unaffected.
-- The exemption code is chosen by the user, never by the model. An API error must be shown to the user, not retried with another code.
-- `VATEX-EU-IC` requires `data.delivery_data.country` (ISO 3166-1 alpha-2, country only, never the address). `delivery_data.date` (`YYYY-MM-DD`) is optional and defaults to the document date. A credit note carries the same `delivery_data` as the invoice it reverses.
+- `data.nature` is the VAT exemption code (a VATEX code such as `VATEX-EU-G`, `VATEX-EU-IC`, `VATEX-EU-AE` or `VATEX-EU-O`; these are examples, not a complete list). It stays a free string: the POP API verifies it and answers with a plain-language error.
+- The exemption code comes from the user. The model never chooses, infers (countries, `vies`, VAT rate) or changes it, and asks when it is missing. An API error is shown to the user and the call is not retried with another code.
+- The API requires `data.delivery_data.country` (ISO 3166-1 alpha-2, country only, never the address) when the code is `VATEX-EU-IC`. `delivery_data.date` (`YYYY-MM-DD`) is optional and defaults to the document date. A credit note carries the same `delivery_data` as the invoice it reverses.
 
 **API payload sent:**
 
@@ -692,7 +692,7 @@ data
 ├── version               "FPR12" | "FPA12"
 ├── sdi_type              7-char SDI code ('0000000' for private individuals)
 ├── customer_type         "private" | "company" | "freelance" | "pa"
-├── nature                VAT exemption code (required when rate is 0%, e.g. 'N2.1', 'N6.1'; Peppol: VATEX code, e.g. 'VATEX-EU-IC')
+├── nature                VAT exemption code (required when rate is 0%, e.g. 'N2.1', 'N6.1')
 ├── transmitter_data
 │   ├── transmitter_id    { country_id, id_code }
 │   ├── progressive       Transmission progressive ID (e.g. '00001')

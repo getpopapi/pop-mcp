@@ -215,9 +215,8 @@ The `data` object for all creation tools follows this exact structure.
 - Version `FPR12` = private/company; `FPA12` = Public Administration
 - Peppol only supports `customer_type: "company"` or `"freelance"` (not private)
 - `nature` code required when VAT rate is 0% (e.g. `N2.1`, `N3.1`, `N6.1`)
-- **Peppol `nature` is a VATEX enum** (`PeppolInvoiceDataSchema` in `src/schemas/invoice.ts`, used only by `pop_create_peppol_invoice`): `VATEX-EU-G|IC|AE|O|F`. The shared `InvoiceDataSchema` keeps `nature` free text because SdI/KSeF use `N*`/`STANDARD_VAT`. The code comes from the user, never chosen by the model; API errors are shown, not retried with another code.
+- **`nature` stays a free string on every tool, Peppol included.** The POP API is the single source of truth: it verifies the code (the 62 official EU VATEX codes for Peppol) and answers with plain-language errors; clients block nothing (pop-cloud-api#122, decision D2). Do not add a closed list or fiscal rules to the MCP. The Peppol tool description only says the code comes from the user and is never chosen, inferred or changed by the model, and that API errors are shown, not retried with another code.
 - `delivery_data: { country, date? }` (optional, next to `purchase_order_data`): `country` (ISO alpha-2, country only) required by the API for `VATEX-EU-IC`; credit notes repeat the invoice's block. Checks live only in the API, the MCP does not cross-validate.
-- Adding a VATEX code = one entry each in `VATEX_CODES` and `VATEX_CODE_DESCRIPTIONS`.
 - Bank transfer (MP05) requires `beneficiary`, `financial_institution`, `iban`
 - PDF email: max 3 recipients, Basic+ plan required
 
