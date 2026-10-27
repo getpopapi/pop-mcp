@@ -314,6 +314,11 @@ Generate a Peppol UBL 2.1 document. Optionally submit it to the Peppol network.
 - `"peppol-via-pop"` or `"peppol"` — Submit via POP Peppol
 - `"pop-to-webhook"` — Deliver to a webhook (requires `id`)
 
+**VAT exemption rules specific to Peppol:**
+- `data.nature` is the VAT exemption code (a VATEX code such as `VATEX-EU-G`, `VATEX-EU-IC`, `VATEX-EU-AE` or `VATEX-EU-O`; these are examples, not a complete list). It stays a free string: the POP API verifies it and answers with a plain-language error.
+- The exemption code comes from the user. The model never chooses, infers (countries, `vies`, VAT rate) or changes it, and asks when it is missing. An API error is shown to the user and the call is not retried with another code.
+- The API requires `data.delivery_data.country` (ISO 3166-1 alpha-2, country only, never the address) when the code is `VATEX-EU-IC`. `delivery_data.date` (`YYYY-MM-DD`) is optional and defaults to the document date. A credit note carries the same `delivery_data` as the invoice it reverses.
+
 **API payload sent:**
 
 ```json
@@ -321,7 +326,7 @@ Generate a Peppol UBL 2.1 document. Optionally submit it to the Peppol network.
   "license_key": "YOUR_LICENSE_KEY",
   "user_agent": "pop-mcp",
   "user_agent_version": "1.0.0",
-  "data": { "...invoice fields..." },
+  "data": { "...invoice fields...", "nature": "VATEX-EU-IC", "delivery_data": { "country": "FR" } },
   "integration": { "use": "peppol-via-pop", "action": "create" }
 }
 ```
@@ -719,6 +724,7 @@ data
 │   ├── financial_institution  Required for MP05
 │   └── iban              Required for MP05
 ├── purchase_order_data   (optional) { id, date }
+├── delivery_data         (optional, Peppol) { country, date? } — country required for VATEX-EU-IC
 ├── connected_invoice_data[]  (required for credit notes) { id, date }
 ├── overrides             (optional) { language, bollo_force_apply }
 └── pdf                   (only for pop_create_pdf_invoice)

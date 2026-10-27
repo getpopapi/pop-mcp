@@ -144,6 +144,11 @@ export const PurchaseOrderDataSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Purchase order date in YYYY-MM-DD format"),
 }).strict();
 
+export const DeliveryDataSchema = z.object({
+  country: z.string().length(2).describe("ISO 3166-1 alpha-2 country the goods are delivered to — country only, never the address. Required by the API when nature is 'VATEX-EU-IC' (intra-EU supply of goods): ask the user for it, never guess."),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Delivery date in YYYY-MM-DD format. If omitted the API uses the document date."),
+}).strict();
+
 export const ConnectedInvoiceSchema = z.object({
   id: z.string().describe("Reference invoice number"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Reference invoice date in YYYY-MM-DD format"),
@@ -211,6 +216,7 @@ export const InvoiceDataSchema = z.object({
   order_items: z.array(OrderItemSchema).min(1).describe("Line items (products, services, shipping)"),
   payment_data: PaymentDataSchema,
   purchase_order_data: PurchaseOrderDataSchema.optional().describe("Purchase order reference"),
+  delivery_data: DeliveryDataSchema.optional().describe("Peppol only: delivery country/date. Required when nature is 'VATEX-EU-IC' (intra-EU supply). For a credit note, repeat the same block (same country) as the invoice it reverses."),
   connected_invoice_data: z.array(ConnectedInvoiceSchema).optional().describe("Referenced invoices (required for credit notes)"),
   pdf: PdfConfigSchema.optional().describe("PDF generation configuration (only for create-pdf endpoint)"),
   overrides: OverridesSchema.optional().describe("Optional overrides for locale and stamp settings"),
