@@ -15,7 +15,7 @@ export function createPopServer(ctx: ApiContext): McpServer {
   const server = new McpServer(
     {
       name: "pop-mcp",
-      version: "2.0.0",
+      version: "2.1.0",
     },
     {
       // Our tool catalog is identical for every POP license key, so it's
